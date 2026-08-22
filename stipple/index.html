@@ -1482,6 +1482,6 @@ requestAnimationFrame(loop);
   if(!a) return;
   // Only shown where a sibling index actually exists — the published artifacts
   // are standalone, and a link to "../" there would go nowhere useful.
-  if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation)\/?(index\.html)?$/.test(location.pathname)) a.remove();
+  if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation|wake)\/?(index\.html)?$/.test(location.pathname)) a.remove();
 })();
 </script>
