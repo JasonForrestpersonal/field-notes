@@ -2,10 +2,14 @@
 
 Rendering and animation experiments from Jason Forrest Agency.
 
-Five self-contained pages. **No build step, no dependencies, no package.json.**
+Six self-contained pages. **No build step, no dependencies, no package.json.**
 Every tool is a single HTML file — open the source and the whole technique is
 there. That is deliberate: it keeps them readable, forkable, and alive for years
 without a toolchain rotting underneath them.
+
+Working on this? Read [`CONTEXT.md`](CONTEXT.md) first — it carries the
+decisions, the bridge constraints, and the technique notes that are expensive
+to rediscover.
 
 | | | |
 |---|---|---|
@@ -35,7 +39,15 @@ present so Pages skips Jekyll processing and copies the files straight through.
 
 All internal links are **relative**, so the site works at a repo subpath
 (`user.github.io/field-notes/`), at a domain root, and from the local
-filesystem, without changes.
+filesystem, without changes. An absolute link will 404 on Pages.
+
+The working copy lives at
+`~/Desktop/JF AGENCY/111 Projects/JFA website/field-notes`, beside `JFA-repo`.
+To publish:
+
+```bash
+cd ~/Desktop/"JF AGENCY"/"111 Projects"/"JFA website"/field-notes && git push
+```
 
 ## Adding a tool
 
