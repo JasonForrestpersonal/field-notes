@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animating SVG on Scroll — Technology Review for a Startup Visual Explainer</title>
+<style>
+  :root{
+    --bg:#0e1013;
+    --surface:#16191e;
+    --surface2:#1d2127;
+    --line:#2a2f37;
+    --ink:#eceae4;
+    --muted:#98a0aa;
+    --dim:#6d757f;
+    --accent:#ffc857;
+    --pick:#5eead4;
+    --warn:#fb7185;
+    --info:#93c5fd;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:var(--sans);font-size:16.5px;line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+  header.masthead{
+    border-bottom:1px solid var(--line);
+    padding:72px 0 40px;margin-bottom:8px;
+    background:
+      radial-gradient(900px 320px at 15% -10%, rgba(255,200,87,.10), transparent 65%),
+      radial-gradient(700px 300px at 88% 0%, rgba(94,234,212,.08), transparent 60%);
+  }
+  .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+  h1{font-size:clamp(30px,5vw,46px);line-height:1.1;letter-spacing:-.022em;margin:0 0 18px;font-weight:640}
+  .standfirst{font-size:19px;color:var(--muted);max-width:64ch;margin:0 0 26px}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--dim);display:flex;flex-wrap:wrap;gap:8px 20px}
+  h2{font-size:clamp(22px,3.4vw,30px);letter-spacing:-.018em;margin:76px 0 6px;font-weight:640;scroll-margin-top:20px}
+  h2 .num{font-family:var(--mono);font-size:12px;color:var(--accent);display:block;letter-spacing:.14em;margin-bottom:10px;font-weight:400}
+  h3{font-size:19px;margin:38px 0 10px;letter-spacing:-.01em;font-weight:620}
+  h4{font-size:15px;margin:24px 0 6px;font-weight:620;color:var(--ink)}
+  p{margin:0 0 16px;max-width:72ch}
+  a{color:var(--info);text-decoration-color:rgba(147,197,253,.35);text-underline-offset:2px}
+  a:hover{text-decoration-color:var(--info)}
+  ul,ol{max-width:72ch;padding-left:20px;margin:0 0 16px}
+  li{margin-bottom:7px}
+  code{font-family:var(--mono);font-size:.87em;background:var(--surface2);padding:1.5px 5px;border-radius:4px;color:#ffe0a3;border:1px solid var(--line)}
+  pre{background:#0a0c0f;border:1px solid var(--line);border-radius:10px;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:12.6px;line-height:1.6;margin:0 0 18px}
+  pre code{background:none;border:none;padding:0;color:#d7dce3}
+  .c{color:#5f6b78}.k{color:#ffc857}.s{color:#5eead4}.f{color:#93c5fd}
+
+  .lede{border-left:2px solid var(--accent);padding:2px 0 2px 20px;margin:0 0 26px;font-size:17.5px;color:var(--ink)}
+
+  .tldr{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin:34px 0}
+  .tldr h3{margin-top:0}
+  .stack{display:grid;gap:10px;margin:20px 0 4px}
+  .layer{display:grid;grid-template-columns:88px 1fr;gap:16px;align-items:start;padding:12px 14px;border-radius:9px;background:var(--surface2);border:1px solid var(--line)}
+  .layer b{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);padding-top:3px}
+  .layer div{font-size:14.5px}
+  .layer .t{font-weight:640;color:var(--pick)}
+  .layer.opt .t{color:var(--accent)}
+  .layer.no .t{color:var(--warn)}
+
+  table{width:100%;border-collapse:collapse;font-size:13.4px;margin:20px 0 8px}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:500;border-bottom:1px solid var(--line)}
+  tbody tr:hover{background:rgba(255,255,255,.02)}
+  td.name{font-weight:620;white-space:nowrap}
+  .scroller{overflow-x:auto;margin:20px -24px;padding:0 24px}
+  .yes{color:var(--pick)}.no{color:var(--warn)}.mid{color:var(--accent)}
+
+  .badge{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:3px 8px;border-radius:20px;border:1px solid;vertical-align:middle}
+  .b-use{color:var(--pick);border-color:rgba(94,234,212,.4);background:rgba(94,234,212,.08)}
+  .b-maybe{color:var(--accent);border-color:rgba(255,200,87,.4);background:rgba(255,200,87,.08)}
+  .b-skip{color:var(--warn);border-color:rgba(251,113,133,.4);background:rgba(251,113,133,.08)}
+  .b-watch{color:var(--info);border-color:rgba(147,197,253,.4);background:rgba(147,197,253,.08)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin:16px 0}
+  .card h3{margin:0 0 4px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .card .sub{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 0 12px}
+  .card p:last-child{margin-bottom:0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+  .note{border:1px solid var(--line);border-left:2px solid var(--info);background:rgba(147,197,253,.05);border-radius:0 9px 9px 0;padding:14px 18px;margin:20px 0;font-size:14.5px}
+  .note.warn{border-left-color:var(--warn);background:rgba(251,113,133,.05)}
+  .note.pick{border-left-color:var(--pick);background:rgba(94,234,212,.05)}
+  .note b{color:var(--ink)}
+
+  /* ---------- demos ---------- */
+  .demo{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:22px 0 8px;background:var(--surface)}
+  .demo-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--surface2)}
+  .demo-head b{font-size:14px}
+  .demo-head span{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:right}
+  .pane{height:400px;overflow-y:auto;overflow-x:hidden;position:relative;scroll-behavior:auto;overscroll-behavior:contain}
+  .pane::-webkit-scrollbar{width:9px}
+  .pane::-webkit-scrollbar-track{background:#0a0c0f}
+  .pane::-webkit-scrollbar-thumb{background:#333a44;border-radius:9px}
+  .stage{position:sticky;top:0;height:400px;display:grid;place-items:center;padding:22px}
+  .stage svg{width:100%;height:100%;max-height:340px;overflow:visible}
+  .runway{height:200vh;pointer-events:none}
+  .hint{position:absolute;right:14px;top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);z-index:5;pointer-events:none;transition:opacity .3s}
+  .prog{position:absolute;left:0;top:0;height:2px;background:var(--accent);width:0;z-index:6}
+  .readout{position:absolute;left:14px;bottom:12px;font-family:var(--mono);font-size:11px;color:var(--dim);z-index:5;pointer-events:none}
+
+  .ctrl{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:13px 18px;border-top:1px solid var(--line);background:var(--surface2);font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  input[type=range]{accent-color:var(--accent);width:200px}
+  .fps{font-family:var(--mono);font-size:26px;font-weight:600;letter-spacing:-.02em}
+  .fps.good{color:var(--pick)}.fps.ok{color:var(--accent)}.fps.bad{color:var(--warn)}
+  button.seg{font-family:var(--mono);font-size:11px;background:var(--surface);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+  button.seg[aria-pressed=true]{background:var(--accent);color:#171a1f;border-color:var(--accent);font-weight:600}
+
+  .toc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 24px;margin:34px 0 0}
+  .toc ol{columns:2;column-gap:34px;margin:0;padding-left:18px;font-size:14px}
+  @media(max-width:640px){.toc ol{columns:1}}
+  .toc a{color:var(--muted);text-decoration:none}
+  .toc a:hover{color:var(--accent)}
+
+  footer{border-top:1px solid var(--line);margin-top:90px;padding:34px 0 80px;font-size:13px;color:var(--dim)}
+  footer a{color:var(--dim)}
+  .srcs{font-size:12.4px;line-height:1.85;column-count:2;column-gap:30px}
+  @media(max-width:640px){.srcs{column-count:1}}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="kicker">Technology Review · Jason Forrest Agency · August 2026</p>
+    <h1>Animating SVG on scroll</h1>
+    <p class="standfirst">Which animation and physics framework to build a best-in-class visual explainer on — evaluated for a diagram-heavy story with spatial ambition, and for a Figma/Illustrator → Claude → React/Svelte production pipeline.</p>
+    <div class="meta">
+      <span>Scope: 14 tools</span><span>Verified 18 Aug 2026</span><span>Sizes measured from npm tarballs, gzip −9</span>
+    </div>
+    <div class="toc">
+      <ol>
+        <li><a href="#verdict">The verdict</a></li>
+        <li><a href="#demos">What SVG + scroll actually does</a></li>
+        <li><a href="#three-tiers">Three tiers, one question</a></li>
+        <li><a href="#matrix">Comparison matrix</a></li>
+        <li><a href="#engines">The rendering engines</a></li>
+        <li><a href="#designtools">The design-tool runtimes</a></li>
+        <li><a href="#budget">Performance budget</a></li>
+        <li><a href="#money">What it costs</a></li>
+        <li><a href="#workflow">Figma → Claude → React/Svelte</a></li>
+        <li><a href="#risks">Risk register</a></li>
+      </ol>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ 1 ============ -->
+<h2 id="verdict"><span class="num">01</span>The verdict</h2>
+
+<p class="lede">For a diagram-heavy scroll explainer in 2026, the correct answer is boring and it got cheaper: <b>SVG in the DOM, geometry generated by D3, choreographed by GSAP ScrollTrigger</b>, with everything else brought in surgically and code-split. The interesting news is that this stopped being a compromise — in April 2025 Webflow made every GSAP plugin free for commercial use, which handed the SVG lane the two tools it was always missing: <code>MorphSVG</code> and <code>DrawSVG</code>.</p>
+
+<div class="tldr">
+  <h3>Recommended stack</h3>
+  <div class="stack">
+    <div class="layer"><b>Spine</b><div><span class="t">SVG + D3 (modular) + GSAP ScrollTrigger / DrawSVG / MorphSVG</span><br>~60&nbsp;KB gzip total. Real text, real accessibility, SEO-visible, screenshot-able, print-able. Pin, scrub and snap are only available here.</div></div>
+    <div class="layer"><b>Free layer</b><div><span class="t">Native CSS <code>animation-timeline: view()</code></span><br>Reveals, parallax, progress bars. 0&nbsp;KB, runs off the main thread, ~85% of users. Silently no-ops elsewhere. Use it for everything cheap.</div></div>
+    <div class="layer"><b>Steps</b><div><span class="t">Scrolleo (ZeitOnline) or hand-rolled IntersectionObserver</span><br>Scrollama is still the standard but hasn't published to npm since June 2022. Scrolleo is the maintained near-clone.</div></div>
+    <div class="layer opt"><b>Escalate</b><div><span class="t">Rive — for one stateful hero moment</span> · <span class="t">Three.js — for one spatial moment</span><br>Both behind a dynamic <code>import()</code> so mobile and reduced-motion users never download them. Rive floor: $9/seat/mo annual. Three floor: ~128&nbsp;KB gzip.</div></div>
+    <div class="layer no"><b>Skip</b><div><span class="t">Spline, deck.gl, PixiJS, Jitter, Typeflow</span><br>Each wrong for this brief for a specific, checkable reason — see below. deck.gl only re-enters if the data turns out to be genuinely geospatial.</div></div>
+  </div>
+</div>
+
+<p><b>The one-line rule that decides most of this:</b> if the explainer has labels, axes, annotations and legible type — and a diagram-heavy explainer does — the renderer must be SVG. Canvas and WebGL runtimes (Rive, PixiJS, Three.js, Spline, dotLottie) are opaque to screen readers, invisible to search engines, cannot be selected or translated, and render text as either SDF glyphs or baked outlines. That's an acceptable trade for one hero moment. It's an unacceptable trade for the body of a public explainer.</p>
+
+<!-- ============ 2 ============ -->
+<h2 id="demos"><span class="num">02</span>What SVG + scroll actually does</h2>
+
+<p>Four live demos, each in its own scroll pane — <b>scroll inside the boxes</b>. All four run on zero libraries: hand-written vanilla JS on a <code>requestAnimationFrame</code> loop, which is exactly what GSAP ScrollTrigger does under the hood, minus the ~48&nbsp;KB of edge-case handling you'd want in production.</p>
+
+<!-- demo 1 -->
+<div class="demo">
+  <div class="demo-head"><b>1 · Draw-on-scroll</b><span>stroke-dasharray + stroke-dashoffset · GSAP DrawSVGPlugin = 2.2 KB gz</span></div>
+  <div class="pane" data-demo="draw">
+    <div class="prog"></div>
+    <div class="hint">↓ scroll inside</div>
+    <div class="stage">
+      <svg viewBox="0 0 600 300" fill="none" aria-label="A line chart drawing itself as you scroll">
+        <g stroke="#2a2f37" stroke-width="1">
+          <line x1="60" y1="250" x2="560" y2="250"/><line x1="60" y1="190" x2="560" y2="190"/>
+          <line x1="60" y1="130" x2="560" y2="130"/><line x1="60" y1="70" x2="560" y2="70"/>
+        </g>
+        <path id="d1-line" d="M60 235 C 120 230, 150 190, 200 195 S 280 160, 330 140 S 420 120, 470 80 S 530 60, 560 42"
+              stroke="#ffc857" stroke-width="3" stroke-linecap="round"/>
+        <circle id="d1-dot" r="6" fill="#ffc857" cx="60" cy="235"/>
+        <g id="d1-labels" font-family="ui-monospace,monospace" font-size="11" fill="#98a0aa">
+          <text x="60" y="272">Q1</text><text x="185" y="272">Q2</text>
+          <text x="315" y="272">Q3</text><text x="455" y="272">Q4</text>
+        </g>
+        <text id="d1-callout" x="470" y="34" font-family="ui-monospace,monospace" font-size="13" fill="#5eead4" text-anchor="end" opacity="0">↑ inflection</text>
+      </svg>
+    </div>
+    <div class="runway"></div>
+    <div class="readout"></div>
+  </div>
+</div>
+<p>The workhorse move for any explainer that draws a trend, a route, a connection or a process arrow. Requires a <b>live stroke</b> on an open path — if your Figma or Illustrator export outlined the stroke into a filled shape, this is impossible and you have to re-export. That single fact drives half of §09.</p>
+
+<!-- demo 2 -->
+<div class="demo">
+  <div class="demo-head"><b>2 · Sticky scrub — a diagram assembling itself</b><span>position: sticky + scroll progress → transform &amp; opacity only</span></div>
+  <div class="pane" data-demo="build">
+    <div class="prog"></div>
+    <div class="hint">↓ scroll inside</div>
+    <div class="stage">
+      <svg viewBox="0 0 600 300" aria-label="A bar chart building, then annotating itself">
+        <g id="d2-bars" fill="#5eead4"></g>
+        <line id="d2-axis" x1="70" y1="250" x2="560" y2="250" stroke="#2a2f37" stroke-width="1.5"/>
+        <g id="d2-mean" opacity="0">
+          <line x1="70" y1="160" x2="560" y2="160" stroke="#ffc857" stroke-width="1.5" stroke-dasharray="5 5"/>
+          <text x="566" y="164" font-family="ui-monospace,monospace" font-size="11" fill="#ffc857">mean</text>
+        </g>
+        <g id="d2-flag" opacity="0">
+          <rect x="352" y="52" width="128" height="30" rx="6" fill="#fb7185" fill-opacity=".15" stroke="#fb7185"/>
+          <text x="416" y="72" font-family="ui-monospace,monospace" font-size="11.5" fill="#fb7185" text-anchor="middle">outlier · 3.1σ</text>
+          <line x1="416" y1="82" x2="416" y2="104" stroke="#fb7185" stroke-width="1.5"/>
+        </g>
+      </svg>
+    </div>
+    <div class="runway"></div>
+    <div class="readout"></div>
+  </div>
+</div>
+<p>Note what is being animated: <code>transform</code> and <code>opacity</code> only, never <code>x</code>/<code>y</code>/<code>width</code>/<code>d</code>. Attribute animation forces the browser through Style → Layout → Paint every frame; transform and opacity run on the compositor. This is the single biggest performance lever in SVG animation, and it's a discipline your artwork has to be built for — every bar sits in its own <code>&lt;g&gt;</code> with an explicit <code>transform-box: fill-box</code>.</p>
+
+<!-- demo 3 -->
+<div class="demo">
+  <div class="demo-head"><b>3 · Morph — one diagram becoming another</b><span>this demo: matched point counts · dissimilar shapes need GSAP MorphSVG, 9.6 KB gz</span></div>
+  <div class="pane" data-demo="morph">
+    <div class="prog"></div>
+    <div class="hint">↓ scroll inside</div>
+    <div class="stage">
+      <svg viewBox="0 0 600 300" aria-label="An area chart morphing into a different distribution">
+        <path id="d3-area" fill="#93c5fd" fill-opacity=".18" stroke="#93c5fd" stroke-width="2.5"/>
+        <line x1="60" y1="250" x2="560" y2="250" stroke="#2a2f37" stroke-width="1.5"/>
+        <text id="d3-cap" x="60" y="42" font-family="ui-monospace,monospace" font-size="13" fill="#98a0aa">before →</text>
+      </svg>
+    </div>
+    <div class="runway"></div>
+    <div class="readout"></div>
+  </div>
+</div>
+<p>Shape-to-shape transition is where the tools genuinely diverge. <b>GSAP MorphSVG is the only option in this review that morphs between paths with different point counts</b> — it re-samples and re-indexes automatically. Motion tells you to install Flubber; Anime.js requires identical point counts; CSS <code>d</code> interpolation requires identical command counts <i>and</i> Safari parses it but doesn't apply it. If your explainer says "this chart is really that chart," this one capability is the whole decision.</p>
+
+<!-- demo 4 -->
+<div class="demo">
+  <div class="demo-head"><b>4 · Where SVG breaks — measure it yourself</b><span>animated SVG nodes vs. frame rate, on your machine, right now</span></div>
+  <div class="pane" data-demo="stress" style="height:300px;overflow:hidden">
+    <div class="stage" style="height:300px">
+      <svg viewBox="0 0 600 260" id="d4-svg" aria-label="A field of animated SVG nodes used as a performance stress test"></svg>
+    </div>
+  </div>
+  <div class="ctrl">
+    <label>nodes <input type="range" id="d4-range" min="100" max="8000" step="100" value="800"></label>
+    <span id="d4-count" style="min-width:56px;display:inline-block">800</span>
+    <span class="fps good" id="d4-fps">— fps</span>
+    <span id="d4-verdict" style="flex:1;text-align:right"></span>
+  </div>
+</div>
+<p>The peer-reviewed number to plan against comes from Schwab et al., <i>Scalable Scalable Vector Graphics</i> (IEEE TVCG 2022): <b>~2,500 animated SVG nodes lands around 30&nbsp;fps</b>, and 15,000–20,000 nodes collapses to ~6&nbsp;fps. Because rendering and interaction share the main thread, 6&nbsp;fps also means ~250&nbsp;ms of input lag — a janky scroll explainer doesn't read as "slow," it reads as broken. Practical bands: under 1,000 nodes is safe everywhere including mid-tier mobile; 1,000–2,500 is fine on desktop and degrading on phones; above ~5,000 go to canvas; above ~50,000 go to WebGL. Your slider above is a desktop-class machine — divide by roughly three for a four-year-old Android.</p>
+
+<div class="note pick"><b>The design implication:</b> 40,000 animated dots is almost always a design failure rather than a rendering failure. Binning, aggregating and small-multiple-ing the data is cheaper, more legible and more accessible than switching to a GPU renderer to brute-force a chart nobody can read.</div>
+
+<!-- ============ 3 ============ -->
+<h2 id="three-tiers"><span class="num">03</span>Three tiers, one question</h2>
+
+<p>The fourteen tools in scope aren't really competing with each other — they occupy three different layers of the stack, and most "which should we use" arguments are people comparing across layers. Sorting them first makes the decision almost mechanical.</p>
+
+<div class="grid2">
+  <div class="card">
+    <h3>Tier 1 · Code-first runtimes</h3>
+    <p class="sub">GSAP · Motion · Anime.js · native CSS</p>
+    <p>You write the animation. They animate whatever's already in the DOM — including SVG nodes, individually, with CSS still available. This is the only tier where the output stays accessible and text stays real.</p>
+  </div>
+  <div class="card">
+    <h3>Tier 2 · Design-tool runtimes</h3>
+    <p class="sub">Rive · Lottie/LottieFiles · Jitter · Cavalry · Spline</p>
+    <p>A designer authors in a GUI; a runtime plays the file. You get authoring speed and lose per-node control. Weight ranges from 45&nbsp;KB (lottie-light) to 6&nbsp;MB+ (a real Spline scene).</p>
+  </div>
+  <div class="card">
+    <h3>Tier 3 · Rendering engines</h3>
+    <p class="sub">Three.js · PixiJS · deck.gl</p>
+    <p>Not animation tools at all — they're renderers you drive with a Tier-1 library. You adopt one because SVG has run out of headroom or the story is genuinely 3D/geospatial, not because you want nicer motion.</p>
+  </div>
+  <div class="card">
+    <h3>Tier 0 · Not really tools</h3>
+    <p class="sub">Typeflow / Algo</p>
+    <p>Typeflow is a free browser demo that renders MP4s and emails them to you. It's a beautiful proof that the <b>Cavalry Web Player</b> works in production — that's the real finding, and it belongs in Tier 2.</p>
+  </div>
+</div>
+
+<h3>The single question that resolves the tier</h3>
+<p><b>Does a human need to read words inside the animation?</b> If yes → Tier 1, SVG, non-negotiable. If no — an illustrated character, a product beauty shot, an abstract hero — Tier 2 or 3 is on the table, and should be code-split so it costs nothing for the 60% of visitors who bounce before reaching it.</p>
+
+<!-- ============ 4 ============ -->
+<h2 id="matrix"><span class="num">04</span>Comparison matrix</h2>
+
+<div class="scroller">
+<table>
+<thead><tr><th>Tool</th><th>Tier</th><th>Scroll scrub</th><th>Weight (gzip)</th><th>Text&nbsp;/&nbsp;a11y</th><th>React</th><th>Svelte</th><th>Cost floor</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td class="name">GSAP 3.15</td><td>1</td><td class="yes">Best — pin, scrub, snap</td><td>~48 KB typical</td><td class="yes">Native DOM</td><td class="mid"><code>@gsap/react</code> (stale)</td><td class="mid">Docs + skills, no pkg</td><td class="yes">$0 commercial</td><td><span class="badge b-use">Spine</span></td></tr>
+<tr><td class="name">Native CSS timelines</td><td>1</td><td class="yes">Yes, off-thread</td><td class="yes">0 KB</td><td class="yes">Native DOM</td><td class="yes">n/a</td><td class="yes">n/a</td><td class="yes">$0</td><td><span class="badge b-use">Base layer</span></td></tr>
+<tr><td class="name">Motion 13</td><td>1</td><td class="mid">Yes, but <b>no pin</b></td><td class="yes">~8–25 KB</td><td class="yes">Native DOM</td><td class="yes">First-party, RSC-aware</td><td class="no">Community only</td><td class="yes">$0 (MIT)</td><td><span class="badge b-maybe">If React-only</span></td></tr>
+<tr><td class="name">Anime.js 4.5</td><td>1</td><td class="mid">Yes, no pin</td><td class="yes">~12–20 KB</td><td class="yes">Native DOM</td><td class="no">None official</td><td class="no">None official</td><td class="yes">$0 (MIT)</td><td><span class="badge b-maybe">Lightest MIT</span></td></tr>
+<tr><td class="name">Rive</td><td>2</td><td class="yes">Yes — 3 ways</td><td class="mid">384–881 KB</td><td class="no">Canvas/WASM</td><td class="yes">Excellent hooks</td><td class="no">DIY (~20 lines)</td><td class="mid">$9/seat/mo <span style="color:var(--dim)">(annual; $17 monthly)</span></td><td><span class="badge b-use">One hero</span></td></tr>
+<tr><td class="name">Lottie (lottie-web)</td><td>2</td><td class="yes"><code>goToAndStop</code></td><td class="yes">45–74 KB + JSON</td><td class="mid">SVG DOM, no semantics</td><td class="mid">Community</td><td class="mid">Community</td><td class="mid">$0 player · see §08</td><td><span class="badge b-maybe">Interchange</span></td></tr>
+<tr><td class="name">dotLottie</td><td>2</td><td class="yes"><code>setFrame</code></td><td class="no">~507 KB</td><td class="no">Raster blit</td><td class="yes">Official</td><td class="yes">Official ✓</td><td class="mid">same</td><td><span class="badge b-maybe">Only if heavy</span></td></tr>
+<tr><td class="name">Cavalry + Web Player</td><td>2</td><td class="yes"><code>setFrame</code> + live attrs</td><td class="no">~3 MB, beta</td><td class="no">GPU vector</td><td class="no">DIY</td><td class="no">DIY</td><td class="yes">$0 (free since Apr&nbsp;2026)</td><td><span class="badge b-watch">Watch</span></td></tr>
+<tr><td class="name">Jitter</td><td>2</td><td class="no">n/a — exports Lottie</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="mid">unverified</td><td><span class="badge b-maybe">Authoring only</span></td></tr>
+<tr><td class="name">Spline</td><td>2</td><td class="no"><b>No true scrub API</b></td><td class="no">567 KB – 6 MB+</td><td class="no">3D raster</td><td class="mid">Wrapper 13mo stale</td><td class="no">Dead</td><td class="no">$120/seat/mo self-host <span style="color:var(--dim)">($150 monthly)</span></td><td><span class="badge b-skip">Skip</span></td></tr>
+<tr><td class="name">Three.js r185</td><td>3</td><td class="yes">Via GSAP</td><td class="mid">128–160 KB</td><td class="no">Canvas</td><td class="yes">R3F 9 + drei</td><td class="yes">Threlte 8</td><td class="yes">$0 (MIT)</td><td><span class="badge b-maybe">Code-split</span></td></tr>
+<tr><td class="name">PixiJS 8.19</td><td>3</td><td class="yes">Via GSAP</td><td class="mid">~148 KB</td><td class="no">Canvas</td><td class="yes">@pixi/react 8</td><td class="mid">Community</td><td class="yes">$0 (MIT)</td><td><span class="badge b-skip">Not this brief</span></td></tr>
+<tr><td class="name">deck.gl 9.3</td><td>3</td><td class="mid">Time-based, not scrub</td><td class="no">174–297 KB</td><td class="no">Canvas</td><td class="yes">Loose React peer</td><td class="no">None</td><td class="yes">$0 (MIT)</td><td><span class="badge b-maybe">Only if geo</span></td></tr>
+<tr><td class="name">Typeflow / Algo</td><td>0</td><td class="no">n/a — emails MP4</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="yes">free demo</td><td><span class="badge b-skip">Not a product</span></td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size:13px;color:var(--dim)">Sizes are gzip −9, measured from published npm tarballs on 18 Aug 2026. Brotli in production runs roughly 15–25% lower. "Weight" for Tier 2 includes the WASM payload where applicable, which is where the surprises live.</p>
+
+<h3>The Tier-1 shortlist, in one paragraph each</h3>
+
+<div class="card">
+  <h3>GSAP 3.15 <span class="badge b-use">Recommended</span></h3>
+  <p class="sub">Free for commercial use since Apr 2025 · custom Webflow licence, not OSI · ~48 KB gzip for core + ScrollTrigger + DrawSVG</p>
+  <p>It wins on three things nothing else has: <b>ScrollTrigger's pin/scrub/snap</b> (Motion and Anime both make you hand-roll sticky and neither offers snapping or nested horizontal scrollers), <b>MorphSVG's mismatched-point-count morphing</b>, and <b>SVG transform normalisation</b> — GSAP writes matrices into the <code>transform</code> attribute and gives you <code>svgOrigin</code> in user-space coordinates, which sidesteps the entire class of cross-browser transform-origin bugs. It's the heaviest option and it is not open source: the licence forbids using GSAP to build a competing visual animation builder. Agency client work is explicitly fine, and AI-generated GSAP code is explicitly fine. One caveat to know: ScrollTrigger contains zero references to <code>ScrollTimeline</code> — it's pure rAF, on the main thread, always.</p>
+</div>
+
+<div class="card">
+  <h3>Motion 13 <span class="badge b-maybe">Strong second</span></h3>
+  <p class="sub">MIT · 13.1.0 published 10 Aug 2026 · <code>scroll()</code> quoted at 5.1 KB, hybrid animate ~18 KB</p>
+  <p>The best-engineered option and the only one that <b>offloads scroll animations to the browser's native ScrollTimeline/ViewTimeline where supported</b>, falling back to rAF automatically — so on Chrome, Edge and Safari 26 your scroll work runs off the main thread for free. Best-in-class reduced-motion handling (built in, not bolted on) and the only genuinely RSC-aware option via <code>motion/react-client</code>. The disqualifier for this brief: <b>no pinning primitive</b>, no snap, no <code>containerAnimation</code>, and morphing dissimilar paths means adding Flubber. It also has no official Svelte support — three community ports exist, none first-party, which is a real risk on client work.</p>
+</div>
+
+<div class="card">
+  <h3>Anime.js 4.5 <span class="badge b-maybe">Lightest MIT</span></h3>
+  <p class="sub">MIT · 4.5.0 published 22 Jun 2026 · <code>events/scroll</code> module 7.8 KB, <code>svg/drawable</code> 1.5 KB</p>
+  <p>The v4 rewrite made it genuinely competitive: proper subpath exports, a real <code>onScroll()</code> with four sync modes including direct playback scrubbing and eased scroll, and a <code>createScope()</code> primitive with <code>mediaQueries</code> that handles both framework cleanup and reduced-motion. If you're in Svelte and want the smallest permissively-licensed footprint, this is the pick. No pin, no auto point-matching on morph, no official framework wrappers, and note that a <code>5.0.0-beta</code> appeared on npm on 17 Aug 2026 with no published release notes — don't start a client project on it.</p>
+</div>
+
+<div class="card">
+  <h3>Native CSS scroll-driven animations <span class="badge b-use">Use as base layer</span></h3>
+  <p class="sub">0 KB · ~85% global · Chrome/Edge 115+, Safari 26+ · <b>Firefox stable (153) does not support it</b></p>
+  <p>Free, off the main thread, and immune to every jank cause in §07. It handles reveals, parallax, progress indicators, sticky-section scrubs, and — usefully — <code>stroke-dashoffset</code>, so basic path drawing works natively. It cannot pin with spacer management, cannot snap, cannot read progress into JS, and cannot morph paths cross-browser. Firefox has it behind <code>layout.css.scroll-driven-animations.enabled</code>, whose default value is literally <code>@IS_NIGHTLY_BUILD@</code> — true in Nightly, false in Beta and Release. Bugzilla 1676779 is <b>NEW</b> with no target milestone and 32 open dependencies, so plan for 2027 at the earliest. Be careful reading caniuse here: its "Firefox 156" row is the Nightly track, not stable. <b>Pitch it as the base layer and let it degrade to "no animation" in Firefox</b> — that's a progressive-enhancement story, not a bug. The polyfill puts you back on the main thread and buys syntax, not performance.</p>
+</div>
+
+<!-- ============ 5 ============ -->
+<h2 id="engines"><span class="num">05</span>The rendering engines</h2>
+
+<p>You asked about physics/3D frameworks specifically, and given the explainer has spatial ambition this is where the money question sits: <b>when is leaving the DOM justified?</b></p>
+
+<div class="card">
+  <h3>Three.js r185 <span class="badge b-maybe">Code-split, for one or two moments</span></h3>
+  <p class="sub">MIT · ~128 KB gzip for a minimal lit scene, ~160 KB realistic · WebGPU still experimental</p>
+  <p><b>Justified when:</b> the camera genuinely moves through a spatial structure; you need &gt;10k simultaneously animated marks; the geometry is volumetric, network or point-cloud; or a shader-driven transition between diagram states is the point. <b>Overkill when:</b> flowcharts, timelines, bar/line/Sankey, annotated schematics — anything with typography. Text is Three's weakest area (SDF-based, no rich text, no reflow, zero accessibility), and paying a 128 KB floor for a diagram SVG renders crisply for free is a bad trade.</p>
+  <p><b>Three things to know before quoting it.</b> (1) <code>@react-three/fiber@9.7</code> peers <code>react: "&gt;=19 &lt;19.3"</code> — an <i>upper</i> bound that will fight a Next.js upgrade; check the client's React version before you commit. (2) Three ships breaking changes under minor version bumps by policy — <b>pin the exact version</b>, never use a range. (3) drei's <code>ScrollControls</code> creates its own scroll container overlaying the canvas and does not compose with a long editorial article or <code>position: sticky</code>; for a text-heavy explainer use GSAP ScrollTrigger driving a plain render loop instead. In Svelte, Threlte 8 is thin, maintained and Svelte-5 native, with a genuinely useful <code>&lt;Svg&gt;</code> component (SVGLoader wrapper — a direct path from D3-generated geometry into 3D) and <code>&lt;MeshLine&gt;</code> for thick lines, which raw Three is bad at. Threlte has <b>no ScrollControls equivalent</b>; budget for hand-wiring.</p>
+  <p><b>On WebGPU:</b> still officially experimental, not the default, and costs +78 KB while forfeiting <code>ShaderMaterial</code>, <code>onBeforeCompile</code> and <code>EffectComposer</code>. Firefox has it disabled by default. Ship WebGL.</p>
+</div>
+
+<div class="card">
+  <h3>PixiJS 8.19 <span class="badge b-skip">Wrong tool for this brief</span></h3>
+  <p class="sub">MIT · ~148 KB gzip · 2D GPU scenegraph</p>
+  <p>Excellent at what it's for — dense 2D fields, particle systems, continuous pan/zoom over tens of thousands of marks, at the same cost as Three but with real 2D semantics instead of hand-rolled ortho cameras. The disqualifier is specific and checkable: <b>Pixi's SVG-to-geometry path does not support <code>&lt;text&gt;</code>, filters, or patterns</b>, and its own docs warn that complex hole geometries "may render inaccurately" due to performance-optimised triangulation. A D3 chart is mostly text. "Render our D3 SVG through Pixi" silently drops all of it. Revisit only if a single scene genuinely exceeds ~10,000 animated 2D marks.</p>
+</div>
+
+<div class="card">
+  <h3>deck.gl 9.3 <span class="badge b-maybe">Only if the data is actually geospatial</span></h3>
+  <p class="sub">MIT · 174 KB gzip minimum, ~297 KB with real geo layers</p>
+  <p>The right answer for genuine maps, &gt;100k GPU-instanced marks with picking, H3/hex aggregation, or tiled data. Its GPU-interpolated attribute transitions (the <code>transitions</code> prop on <code>get*</code> accessors) are genuinely excellent at morphing between data states. Two things to flag: <b>there is no official deck.gl scrollytelling documentation, example or recipe</b> — the pattern is entirely community-assembled, and deck.gl's own <code>/docs/roadmap</code> page is stale enough to still discuss v6. And its view-state transitions are <i>time-based</i> interpolators, which fight scrub-based scrolling. The workable pattern is: use step <i>enter</i> events for camera moves, step <i>progress</i> only for cheap scrubbing like opacity and filter ranges. Pair with MapLibre (BSD-3, no token, no per-load billing) rather than Mapbox.</p>
+  <p>If the explainer's data isn't geographic, <code>OrthographicView</code> technically does infovis but you're paying 174 KB and inheriting a geo-shaped API for something D3 + SVG does better, more accessibly, at 31 KB.</p>
+</div>
+
+<h3>Physics, specifically</h3>
+<p>Nothing in this list needs a physics engine, and adding one is the most common way a scroll explainer gets slow and unpredictable. Three tiers of "physics" worth distinguishing:</p>
+<ul>
+  <li><b>Spring easing</b> — what you almost always actually want. Free in Motion (<code>type: "spring"</code>), in Anime.js, in Svelte's built-in <code>spring</code> store, and in Figma Motion's own easing set. Zero extra bytes.</li>
+  <li><b>Inertia / momentum</b> — GSAP's <code>InertiaPlugin</code> (now free, 4.3 KB) for flick-and-settle interactions. Worth it for a draggable exploration step; pointless on a scrubbed timeline.</li>
+  <li><b>Rigid-body simulation</b> — Rapier (via <code>@react-three/rapier</code>) or Spline's physics module. Note Spline's physics bundle alone is <b>709 KB gzip</b>, larger than its already-huge runtime. Simulation is fundamentally at odds with scrubbing: you can play a simulation forward on scroll, but you cannot scrub it backwards deterministically without baking it to keyframes first. For an explainer, bake it.</li>
+</ul>
+
+<!-- ============ 6 ============ -->
+<h2 id="designtools"><span class="num">06</span>The design-tool runtimes</h2>
+
+<div class="card">
+  <h3>Rive <span class="badge b-use">The one to actually buy</span></h3>
+  <p class="sub">Runtimes MIT · <code>@rive-app/canvas</code> 2.40.0 · 384 KB (lite) / 813 KB (canvas) / 881 KB (webgl2) gzip incl. WASM</p>
+  <p>The only design-tool runtime built for <i>interactive</i> motion rather than playback. Three independent ways to drive it from scroll — <code>rive.scrub()</code> on a linear timeline, state-machine number inputs, or the modern data-binding path (<code>viewModelInstance.number("Progress").value = p</code>) — plus first-class React hooks. If the explainer needs a character, a product, or anything that <i>responds</i> rather than merely plays, this is the tool.</p>
+  <p><b>Two gotchas.</b> Since 20 Oct 2025, <b>exports are behind paid plans</b> — you cannot ship a <code>.riv</code> on the free tier, so $9/seat/mo is the real floor — and note that's the annual rate; month-to-month is $17. And Rive's editor-side "Scroll Constraint" is <i>internal</i> scrolling within an artboard, not page-scroll binding; you wire IntersectionObserver or ScrollTrigger to a data-binding input yourself. No official Svelte wrapper (only an unofficial <code>rivette</code> at v0.0.2), but the core JS package is framework-agnostic and the Svelte integration is about twenty lines in an <code>onMount</code>.</p>
+</div>
+
+<div class="card">
+  <h3>Lottie <span class="badge b-maybe">Best as an interchange format, not a platform</span></h3>
+  <p class="sub"><code>lottie_light.min.js</code> 45 KB gzip · <code>@lottiefiles/dotlottie-web</code> ~507 KB gzip</p>
+  <p>The single most proven scroll-scrub pattern on the web: <code>anim.goToAndStop(frame, true)</code> driven by ScrollTrigger, and GSAP ships an official <code>LottieScrollTrigger</code> helper for exactly this. The SVG renderer produces real DOM you can still target with CSS. At 45 KB it is unbeatable on weight.</p>
+  <p><b>The licensing landmine is worth reading carefully.</b> LottieFiles' commercial-use guide defines commercial use as any activity using their services with intent of monetary gain, and states Free and Individual plans are <b>non-commercial only</b> — a startup marketing site needs the Team plan at $24.99/user/mo billed annually with a two-seat minimum — roughly $50/mo — and Team is itself capped at 10 users per company domain before a forced Enterprise upgrade. Critically, this is an <i>authoring/service</i> licence, not a runtime licence: <b>the players themselves are MIT</b> and carry no such restriction. So author your Lottie somewhere else — Cavalry (now free) or Jitter — and play it with the MIT player, and the licensing question evaporates.</p>
+  <p>Also flag: the old declarative scroll-interactivity library (<code>@lottiefiles/lottie-interactivity</code>) has been abandoned since Feb 2023, there is <b>no</b> <code>dotlottie-interactivity</code> package on npm, and every dotLottie state-machine method is annotated <code>@experimental</code>. For scroll, just call <code>setFrame()</code> yourself. dotLottie's Rust/WASM renderer is ~7× the wire weight of lottie-light for the same content and rasterises to a bitmap — only worth it for genuinely heavy scenes. It is, however, the <b>only tool in this review with an official Svelte wrapper</b>.</p>
+</div>
+
+<div class="card">
+  <h3>Cavalry <span class="badge b-watch">The sleeper — two things changed in 2026</span></h3>
+  <p class="sub">Free since Apr 2026 · Web Player in open beta, ~3 MB payload</p>
+  <p>Two developments most people haven't caught up with. <b>(1) Canva acquired Cavalry in Feb 2026 and made it free in April</b> — the full feature set, commercial use allowed, only Enterprise is paid. For a studio doing procedural, data-driven, spreadsheet-fed motion design, a free Cavalry is a significant capability, and it's the most natural authoring tool in this list for a dataviz practice. <b>(2) There is now a Cavalry Web Player</b> — a WASM runtime that plays native <code>.cv</code> scene files in the browser, with the full procedural engine intact rather than a baked export. Its scrub API is excellent: <code>setFrame()</code> plus live <code>setAttribute(layerId, attrId, value)</code>, so you can drive any node attribute from scroll.</p>
+  <p><b>Why it's "watch" and not "use":</b> ~3 MB compressed, still open beta, no npm package or framework wrappers, and — the blocker — <b>the redistribution licence is unresolved</b>. Canva's Cavalry Additional Terms don't mention the Web Player at all, while carrying a blanket "may not distribute the software" clause. Get that in writing before shipping it on a client site. In the meantime, the Cavalry → Lottie export path works, but note that deformers, duplicators, Magic Easing and rigs — exactly the procedural work you'd use Cavalry <i>for</i> — get baked frame-by-frame and inflate the JSON enormously.</p>
+</div>
+
+<div class="card">
+  <h3>Spline <span class="badge b-skip">Skip for a scroll explainer</span></h3>
+  <p class="sub">Runtime 567 KB gzip baseline · physics module +709 KB · realistic total 1.5–6 MB+</p>
+  <p>Three disqualifiers, any one of which would be enough. <b>No timeline scrub API</b> — the runtime exposes <code>setVariable</code>, <code>emitEvent</code> and <code>findObjectByName</code>, but there is no <code>setFrame</code>/<code>seek</code>; Spline's built-in Scroll Event is configured in the editor and its docs say it "only works with the Viewer export." <b>Weight</b> — 2–7× Rive before you count the scene file and textures. <b>Cost</b> — the free tier watermarks web exports, and self-hosted code export is gated to the Max tier at $120/seat/mo billed annually ($150 month-to-month); below that you're embedding Spline's hosted viewer and taking a third-party runtime dependency on a client's marketing site. The React wrapper is also 13 months stale against a runtime that shipped in June. It's a lovely tool for a one-off hero object; it is not a scroll-explainer engine.</p>
+</div>
+
+<div class="card">
+  <h3>Jitter &amp; Typeflow <span class="badge b-maybe">Authoring speed / not a product</span></h3>
+  <p class="sub">Jitter: Lottie JSON + video export only · Typeflow: renders MP4 and emails it to you</p>
+  <p><b>Jitter</b> has no runtime of its own — it's a fast, Figma-native-feeling authoring front-end that exports Lottie JSON (no dotLottie) or video, so it collapses into the Lottie row. Its rebuilt Lottie exporter added full text-effect and mask support. Reasonable choice if a designer wants to move quickly without learning Cavalry. Its pricing page renders client-side and couldn't be verified — check it in a browser before budgeting. <b>Typeflow</b> is a free marketing demo by the studio Algo, explicitly described as the first public implementation of the Cavalry Web Player. Export is an MP4 by email. There's no SDK, no npm package, no self-serve licence; the commercial offer is an agency engagement. Its value to you is as evidence that the Cavalry Web Player works at production quality — route the interest there.</p>
+</div>
+
+<!-- ============ 7 ============ -->
+<h2 id="budget"><span class="num">07</span>Performance budget &amp; the escalation ladder</h2>
+
+<p>Set the budget before choosing the tool, and most arguments resolve themselves. A marketing explainer that loses users to a 3-second LCP has failed regardless of how good the animation is.</p>
+
+<div class="scroller">
+<table>
+<thead><tr><th>Scene needs</th><th>Reach for</th><th>Marginal cost</th></tr></thead>
+<tbody>
+<tr><td>Reveal, parallax, progress bar</td><td>Native CSS <code>animation-timeline</code></td><td class="yes">0 KB, off main thread</td></tr>
+<tr><td>Path draw, staggered build, pinned scrub</td><td>GSAP + ScrollTrigger + DrawSVG</td><td class="yes">~48 KB gzip, once</td></tr>
+<tr><td>Chart A becomes chart B</td><td>+ MorphSVG</td><td class="yes">+9.6 KB</td></tr>
+<tr><td>Object travels a generated route</td><td>+ MotionPath</td><td class="yes">+9.7 KB</td></tr>
+<tr><td>Illustrated / stateful hero</td><td>Rive, dynamic import</td><td class="mid">+384–813 KB, deferred</td></tr>
+<tr><td>One genuine 3D moment</td><td>Three.js WebGL, dynamic import</td><td class="mid">+128–160 KB, deferred</td></tr>
+<tr><td>&gt;10k animated 2D marks in one scene</td><td>PixiJS</td><td class="mid">+148 KB</td></tr>
+<tr><td>Actual geography, actual tiles</td><td>deck.gl + MapLibre</td><td class="no">+174–297 KB</td></tr>
+</tbody>
+</table>
+</div>
+
+<h4>Fix these before you change renderer — they're usually worth more than a rewrite</h4>
+<ol>
+  <li><b>Animate <code>transform</code> and <code>opacity</code> only.</b> Changing <code>x</code>, <code>cx</code>, <code>width</code> or <code>d</code> mutates geometry and forces Layout + Paint every frame; transform and opacity run on the compositor. This is the single biggest lever, and per the TVCG paper the browser-side cost of that pipeline is "often greater than the time spent in the visualization's JavaScript code."</li>
+  <li><b>Kill animated SVG filters.</b> <code>feGaussianBlur</code> and <code>feDropShadow</code> are per-frame raster work, frequently not GPU-accelerated for SVG, and the number-one silent killer of mobile frame rate.</li>
+  <li><b>Precompute path <code>d</code> strings</b> at build or step time and swap rather than interpolate. Per-frame <code>d</code> rewrites are where most D3 scrollytelling dies.</li>
+  <li><b>Cull off-screen scenes</b> and use <code>content-visibility: auto</code> on steps that aren't visible.</li>
+  <li><b>Measure p95/p99 frame time against the 16.7 ms budget</b>, not mean fps. Mean fps hides exactly the stutter users notice.</li>
+</ol>
+
+<div class="note"><b>Accessibility is not optional here, and it's cheap.</b> <code>prefers-reduced-motion</code> should gate the whole timeline, not just soften it: <code>gsap.matchMedia()</code> with a <code>reduce</code> branch that renders the <i>final state</i> of every scene and creates no timeline at all. Motion has this built in via <code>&lt;MotionConfig reducedMotion="user"&gt;</code>; GSAP and Anime.js both require you to write it. Do it once, in the scene component, and it's free forever after.</div>
+
+<!-- ============ 8 ============ -->
+<h2 id="money"><span class="num">08</span>What it costs</h2>
+
+<div class="scroller">
+<table>
+<thead><tr><th>Tool</th><th>Free tier reality</th><th>Commercial floor</th><th>Licence</th></tr></thead>
+<tbody>
+<tr><td class="name">GSAP</td><td class="yes">Everything, including all former Club plugins</td><td class="yes">$0</td><td class="mid">Custom Webflow "standard" licence — <b>not OSI</b>. No building competing animation builders. Client work and AI-generated code explicitly OK.</td></tr>
+<tr><td class="name">Motion</td><td class="yes">Full library, MIT</td><td class="yes">$0</td><td class="yes">MIT. Motion+ is optional (examples, components, editor); price not verifiable from the site, €299 one-time historically.</td></tr>
+<tr><td class="name">Anime.js / Three / Pixi / deck.gl / D3 / Lenis</td><td class="yes">Everything</td><td class="yes">$0</td><td class="yes">MIT / ISC / Apache</td></tr>
+<tr><td class="name">Cavalry</td><td class="yes">Full app, commercial use allowed</td><td class="yes">$0</td><td class="mid">Free since Apr 2026 (Canva). Web Player redistribution terms <b>unresolved</b>.</td></tr>
+<tr><td class="name">Rive</td><td class="no">No exports on free tier</td><td class="mid">$9/seat/mo billed annually · $17 month-to-month</td><td class="yes">Runtimes MIT, no royalties, all runtimes on every tier</td></tr>
+<tr><td class="name">LottieFiles</td><td class="no">Non-commercial only</td><td class="no">~$50/mo (Team, 2-seat min, 10-seat domain cap)</td><td class="mid">Authoring service is restricted; <b>players are MIT</b> — author elsewhere and the fee disappears</td></tr>
+<tr><td class="name">Spline</td><td class="no">Watermarked web exports</td><td class="no">$120/seat/mo annual · $150 month-to-month, to self-host code</td><td class="no">Below Max you embed their hosted viewer</td></tr>
+<tr><td class="name">Jitter</td><td class="mid">3 files, 720p, watermark</td><td class="mid">unverified — prices render client-side</td><td class="mid">—</td></tr>
+</tbody>
+</table>
+</div>
+
+<p><b>The commercially interesting finding:</b> the recommended stack costs <b>$0 in licensing</b>, and the two paid tools worth considering are $9/mo (Rive) and $0 (Cavalry, free since April). The expensive options — Spline at $120–150/seat/mo, LottieFiles at ~$50/mo — are also the two least suited to this brief. That's a rare alignment, and it's worth putting in front of the startup explicitly: the technology recommendation and the budget recommendation point the same way.</p>
+
+<!-- ============ 9 ============ -->
+<h2 id="workflow"><span class="num">09</span>Figma / Illustrator → Claude → React &amp; Svelte</h2>
+
+<p class="lede">The framework choice is maybe a third of the problem. The other two thirds is whether the SVG that comes out of your design tool is <i>animatable at all</i>, and whether Claude can work on it without drowning in path data. Both are solvable at the artwork stage and nearly unfixable afterward.</p>
+
+<h3>Four tracks, not one pipeline</h3>
+
+<div class="scroller">
+<table>
+<thead><tr><th>Track</th><th>For</th><th>Authoring</th><th>Handoff</th><th>Runtime</th></tr></thead>
+<tbody>
+<tr><td class="name">A · UI motion</td><td>Component states, micro-interactions, page transitions</td><td>Figma Design + <b>Figma Motion</b></td><td>Figma MCP → <code>get_design_context</code> + <code>get_motion_context</code></td><td>Motion or GSAP</td></tr>
+<tr><td class="name">B · Scroll explainer</td><td><b>Your core deliverable</b></td><td>Illustrator or Figma, disciplined layer naming</td><td>Clean SVG export → SVGO → scene files</td><td>GSAP ScrollTrigger + DrawSVG</td></tr>
+<tr><td class="name">C · Stateful hero</td><td>Character, product, anything that responds</td><td>Figma → Copy as SVG → Rive</td><td><code>.riv</code> file + input names</td><td><code>@rive-app/react-canvas</code></td></tr>
+<tr><td class="name">D · Fallback</td><td>Arcs, shaders, animated masks, boolean vectors</td><td>Anywhere</td><td>Pre-rendered MP4/WebM, or Lottie</td><td><code>&lt;video&gt;</code> or lottie-light</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="note"><b>The 2026 development that changes Track A:</b> Figma shipped <b>Figma Motion</b> in open beta on 24 June 2026 — a real keyframe timeline on the canvas, with motion variables, animated components that travel across files, and a Dev Mode <b>Motion tab</b> that copies out CSS, JSON or motion.dev code. Its MCP server exposes <code>get_motion_context</code>, which returns pre-computed keyframe snippets keyed by the same <code>data-node-id</code> that <code>get_design_context</code> emits. That join is the whole handoff. <b>But nothing found suggests Figma Motion models scroll-linked animation at all</b> — it appears to be purely time-based. So it gives you scene keyframes; you still write the scrub. Track B remains hand-built, which is precisely why it's a differentiator.</div>
+
+<h3>Two export presets, permanently</h3>
+<p>These are mutually incompatible and it's worth saving them as named presets rather than rediscovering the conflict each time. <b>Rive wants inline styles; the web/CSS path wants presentation attributes.</b></p>
+
+<div class="grid2">
+<div class="card">
+  <h4 style="margin-top:0">Preset "web" — for Track B</h4>
+  <ul style="font-size:14px;margin-bottom:0">
+    <li><b>Figma:</b> <code>Include "id" attribute</code> <b>ON</b> — this is the single most important setting; it maps layer names to SVG ids</li>
+    <li><b>Figma:</b> <code>Outline text</code> <b>OFF</b> (keep live <code>&lt;text&gt;</code>)</li>
+    <li><b>Figma:</b> <code>Simplify stroke</code> — <b>verify the output</b>; it can convert strokes to filled outlines, which makes path-drawing impossible</li>
+    <li><b>Illustrator:</b> Export As (never Save As) · Styling: <b>Presentation Attributes</b> · Object IDs: <b>Layer Names</b> · Font: <b>SVG</b> · Decimal: <b>2</b> · Preserve Illustrator Editing: <b>off</b></li>
+    <li>Keep <code>viewBox</code>, drop <code>width</code>/<code>height</code></li>
+  </ul>
+</div>
+<div class="card">
+  <h4 style="margin-top:0">Preset "rive" — for Track C</h4>
+  <ul style="font-size:14px;margin-bottom:0">
+    <li>Inline styles, <b>not</b> presentation attributes</li>
+    <li>Retain shape ids and names</li>
+    <li>Preserve Illustrator Editing Capabilities <b>off</b></li>
+    <li>Unsupported on import and silently dropped: <code>stroke-dasharray</code>, masks, filters, skew transforms, gradient transforms; embedded images ignored</li>
+    <li>Lottie import is Enterprise-only</li>
+  </ul>
+</div>
+</div>
+
+<h3>The five artwork rules that decide whether animation is possible</h3>
+<ol>
+  <li><b>One moving thing = one path.</b> Figma collapses multiple shapes merged into a single vector into <i>one</i> <code>d</code> string, which cannot be animated per-part. Fix it at design time: duplicate the layer and delete points from each copy so each animatable element exports as its own path.</li>
+  <li><b>Live strokes on anything that draws.</b> <code>fill="none"</code>, a real <code>stroke</code> attribute, open path. Never <code>Outline Stroke</code> a path you intend to draw. Variable-width brush strokes <i>must</i> be outlined — so those can never be drawn; use a mask reveal instead.</li>
+  <li><b>Name for the selector you'll write.</b> Kebab-case ASCII, no spaces, no leading digits: <code>scene2__bar-01 … bar-12</code>. Zero-padded indices mean one line of code (<code>[id^="scene2__bar-"]</code> with a stagger) instead of twelve.</li>
+  <li><b>Group what moves together; flatten what never moves.</b> Every extra <code>&lt;g&gt;</code> is a nested transform to reason about and tokens Claude has to read.</li>
+  <li><b>Set <code>transform-box: fill-box</code> on anything that rotates or scales.</b> SVG's transform origin defaults to the <code>0 0</code> of the whole canvas, not the shape — the classic bug where a rotating icon swings across the screen. <code>transform-box: fill-box</code> has been Baseline since 2020; GSAP additionally offers <code>svgOrigin</code> in user-space coordinates for elements that must share one pivot.</li>
+</ol>
+
+<h3>SVGO config that doesn't destroy your animation</h3>
+<p>SVGO's default preset will delete your <code>viewBox</code> and minify your ids to <code>a</code>, <code>b</code>, <code>c</code> — deterministically, which makes collisions between two optimised files <i>more</i> likely, not less.</p>
+<pre><code><span class="c">// svgo.config.js — for animation assets</span>
+<span class="k">export default</span> {
+  multipass: <span class="k">true</span>,
+  plugins: [
+    { name: <span class="s">'preset-default'</span>, params: { overrides: {
+      removeViewBox:        <span class="k">false</span>,  <span class="c">// #1 cause of lost responsiveness</span>
+      cleanupIds:           <span class="k">false</span>,  <span class="c">// your ids ARE the animation API</span>
+      collapseGroups:       <span class="k">false</span>,  <span class="c">// groups are your animation wrappers</span>
+      mergePaths:           <span class="k">false</span>,  <span class="c">// never merge separately-animated paths</span>
+      convertShapeToPath:   <span class="k">false</span>,  <span class="c">// keep rect/circle for x/y/r animation</span>
+      removeHiddenElems:    <span class="k">false</span>,  <span class="c">// layers that start hidden then animate in</span>
+      moveElemsAttrsToGroup:<span class="k">false</span>,
+      convertPathData:      { floatPrecision: <span class="s">2</span> },
+      removeUnknownsAndDefaults: { keepDataAttrs: <span class="k">true</span> },
+    }}},
+    { name: <span class="s">'removeDimensions'</span> },   <span class="c">// drop width/height, keep viewBox</span>
+    { name: <span class="s">'prefixIds'</span> },          <span class="c">// gradient/clip id collision guard</span>
+    <span class="c">// reusePaths: OFF — turns paths into &lt;use&gt;, which can't be animated separately</span>
+  ],
+};</code></pre>
+
+<div class="note warn"><b>The id-collision bug you will hit exactly once and then never forget.</b> Illustrator emits <code>linearGradient id="SVGID_1_"</code> in <i>every</i> file; Figma emits <code>clip0_1_2</code>, <code>paint0_linear_1_2</code>. Inline two SVGs on one page and the first definition wins for both — one graphic silently steals the other's gradient or clip path. Fix with SVGO's <code>prefixIds</code> at build time, or with a per-instance id suffix from React's <code>useId()</code>.</div>
+
+<h3>The part that actually matters for working with Claude</h3>
+<p>The dominant failure mode isn't the animation code — it's <b>token cost</b>. A detailed illustration or map can be 50k–200k tokens of pure path data. It floods the context window, and worse, Claude cannot tell which sub-curve is which limb. Nothing recovers this after the fact. Three habits fix it permanently:</p>
+
+<ol>
+  <li><b>Keep the timeline in a separate file from the SVG markup.</b> <code>scene-03.svg</code> and <code>scene-03.motion.ts</code>. Claude edits the timeline and never loads a single path. This is the single biggest token win available and it costs nothing.</li>
+  <li><b>Split into one file per beat</b> — <code>scene-01.svg</code> … <code>scene-06.svg</code>, all sharing one <code>viewBox</code> so coordinates stay comparable across scenes. Halves the context per edit and makes review tractable.</li>
+  <li><b>Ship a <code>MOTION.md</code> next to the scenes</b> listing the id inventory and the intended beat for each. Cheap to write, and it makes every subsequent Claude run consistent rather than re-derived. When you do need Claude to reason about structure, hand it a skeleton — <code>grep -o 'id="[^"]*"'</code> — not the geometry.</li>
+</ol>
+
+<h4>The component shape to standardise on</h4>
+<pre><code><span class="c">&lt;!-- Scene.svelte — the pattern; React is the same with useGSAP() --&gt;</span>
+<span class="k">&lt;script&gt;</span>
+  <span class="k">import</span> { onMount } <span class="k">from</span> <span class="s">'svelte'</span>;
+  <span class="k">import</span> gsap <span class="k">from</span> <span class="s">'gsap'</span>;
+  <span class="k">import</span> ScrollTrigger <span class="k">from</span> <span class="s">'gsap/ScrollTrigger'</span>;
+  gsap.registerPlugin(ScrollTrigger);
+
+  <span class="k">let</span> root, stage;
+  onMount(() =&gt; {
+    <span class="k">const</span> mm = gsap.matchMedia();
+    mm.add(<span class="s">'(prefers-reduced-motion: no-preference)'</span>, () =&gt; {
+      <span class="k">const</span> tl = gsap.timeline({ scrollTrigger: {
+        trigger: root, start: <span class="s">'top top'</span>, end: <span class="s">'bottom bottom'</span>,
+        scrub: <span class="s">0.5</span>,                 <span class="c">// scrub IS the explainer — never toggleActions</span>
+        invalidateOnRefresh: <span class="k">true</span>,
+      }});
+      tl.<span class="f">from</span>(<span class="s">'#scene1__arrow'</span>, { drawSVG: <span class="s">'0%'</span> })
+        .<span class="f">from</span>(<span class="s">'[id^="scene1__bar-"]'</span>, { scaleY: <span class="s">0</span>, transformOrigin: <span class="s">'bottom'</span>, stagger: <span class="s">.05</span> })
+        .<span class="f">to</span>(<span class="s">'#scene1__callout'</span>, { autoAlpha: <span class="s">1</span> }, <span class="s">'&lt;'</span>);
+      <span class="k">return</span> () =&gt; tl.scrollTrigger?.kill();   <span class="c">// HMR + StrictMode leak guard</span>
+    });
+    <span class="c">// reduced-motion branch: render the final state, create no timeline at all</span>
+    <span class="k">return</span> () =&gt; mm.revert();
+  });
+<span class="k">&lt;/script&gt;</span>
+
+<span class="k">&lt;section</span> bind:this={root} <span class="k">class=</span><span class="s">"scroll-root"</span><span class="k">&gt;</span>
+  <span class="k">&lt;div</span> bind:this={stage} <span class="k">class=</span><span class="s">"stage"</span><span class="k">&gt;&lt;</span>Scene1 <span class="k">/&gt;&lt;/div&gt;</span>
+  <span class="k">&lt;div</span> <span class="k">class=</span><span class="s">"steps"</span><span class="k">&gt;</span><span class="c">&lt;!-- text steps establish the scroll length --&gt;</span><span class="k">&lt;/div&gt;</span>
+<span class="k">&lt;/section&gt;</span>
+
+<span class="k">&lt;style&gt;</span>
+  .stage { position: sticky; top: 0; height: <span class="s">100svh</span>; }  <span class="c">/* svh, not vh — mobile URL bar */</span>
+<span class="k">&lt;/style&gt;</span></code></pre>
+
+<p>Four structural rules embedded in that snippet, each of which prevents a specific recurring bug: <b>prefer CSS <code>position: sticky</code> over ScrollTrigger's <code>pin: true</code></b> where you can, because <code>pin</code> rewrites the DOM by injecting a <code>pin-spacer</code> and that surprises both agents and layout assumptions; <b>use <code>100svh</code> not <code>100vh</code></b>, or mobile URL-bar resize will retrigger everything; <b>one timeline per scene component</b>, composed by the page; and <b>always kill on unmount</b>, because React StrictMode's double-mount and Svelte HMR both leak ScrollTriggers otherwise.</p>
+
+<h4>Getting the SVG into the component</h4>
+<ul>
+  <li><b>Whole-element motion only</b> (fade/slide/scale the graphic as a unit) → keep it as <code>&lt;img src="scene.svg"&gt;</code> and animate the wrapper. Zero token cost, zero inlining. Most scenes qualify for at least part of this.</li>
+  <li><b>Path geometry animates</b> (draw, trim, morph, per-part) → must inline. React: <code>vite-plugin-svgr</code> with <code>svgrOptions: { ref: true }</code> (you need the ref for GSAP) <b>and an explicit <code>svgoConfig</code></b>, or SVGR's default SVGO run strips your ids. Svelte: <code>@poppanator/sveltekit-svg</code>, or for a handful of hero scenes just paste the SVG into the <code>.svelte</code> file — you get <code>bind:this</code>, reactive bindings and scoped-CSS id handling for free, and Claude sees the markup in the same file it's editing.</li>
+  <li><b>An icon used 50 times</b> → sprite plus <code>&lt;use&gt;</code>, with the caveat that two <code>&lt;use&gt;</code> of the same path can't be animated independently.</li>
+</ul>
+
+<h4>Two Figma MCP details worth knowing before you rely on it</h4>
+<ul>
+  <li><b>Exact <code>nodeId</code> match beats <code>fallbackNodeId</code>.</b> The fallback is the backing component, shared across every instance — matching on it applies your motion to all of them.</li>
+  <li><b>Interleaved transforms need offset maths.</b> If a node has a static base transform (<code>rotate-45</code>) and animated transforms, <code>get_motion_context</code> returns the <i>absolute</i> value. Animate the offset on the wrapper, or 45° at rest silently becomes 90°.</li>
+</ul>
+
+<h3>Where D3 sits in all this</h3>
+<p>Worth being explicit since it's the house tool: in this architecture <b>D3 is the geometry generator, not the animator</b>. <code>d3-shape</code>, <code>d3-scale</code>, <code>d3-hierarchy</code>, <code>d3-geo</code>, <code>d3-sankey</code> emit the <code>d</code> strings and coordinates; GSAP moves them; ScrollTrigger decides when. Import submodules, never the bundle — the modular subset is 31 KB gzip against 90 KB for full <code>d3.min.js</code>. And for morph transitions, generate <i>both</i> end-state paths with D3 at build time and hand the pair to MorphSVG, rather than interpolating <code>d</code> per frame at runtime.</p>
+
+<!-- ============ 10 ============ -->
+<h2 id="risks"><span class="num">10</span>Risk register &amp; open items</h2>
+
+<div class="scroller">
+<table>
+<thead><tr><th>Item</th><th>Risk</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td class="name">Scrollama</td><td>No npm publish since <b>Jun 2022</b> — 4 years — despite being the de-facto standard</td><td>Use <code>@zeitonline/scrolleo</code> (maintained, near-identical API), or accept it knowingly: it's a thin IntersectionObserver wrapper and IO hasn't changed</td></tr>
+<tr><td class="name"><code>@gsap/react</code></td><td>No release since Jan 2025. Unclear if "done" or unmaintained</td><td>Low risk — it's a small <code>useLayoutEffect</code> wrapper. Note the risk in the SOW; the core library is actively released (3.15.0, Apr 2026)</td></tr>
+<tr><td class="name">R3F React pin</td><td><code>react: "&gt;=19 &lt;19.3"</code> — an <i>upper</i> bound that will block a React upgrade</td><td>Confirm the startup's React version <b>before</b> quoting any Three.js work</td></tr>
+<tr><td class="name">Three.js versioning</td><td>Breaking changes ship under minor bumps, by stated policy</td><td>Pin the exact version. Never a range.</td></tr>
+<tr><td class="name">Cavalry Web Player</td><td>Redistribution licence genuinely unresolved; Canva's terms don't mention it and carry a blanket no-distribution clause</td><td>Get written confirmation from Cavalry/Canva before shipping. Until then, Cavalry → Lottie only</td></tr>
+<tr><td class="name">Firefox + CSS scroll timelines</td><td>Stable is 153 and does not support it; caniuse's "156" row is the Nightly track and is easy to misread as shipped</td><td>Treat native CSS as progressive enhancement. Don't polyfill — it returns you to the main thread and buys syntax, not performance</td></tr>
+<tr><td class="name">Anime.js v5</td><td><code>5.0.0-beta.2</code> on npm (17 Aug 2026), no release notes anywhere</td><td>Ship v4.5. Watch v5.</td></tr>
+<tr><td class="name">Motion + Svelte</td><td>No first-party Svelte support; three competing community ports</td><td>If the build is Svelte, this alone is a reason to pick GSAP or Anime.js instead</td></tr>
+<tr><td class="name">Figma Motion</td><td>Open beta; Figma's own docs warn features may change and performance may suffer. Plan gating is stated inconsistently across their blog and help docs</td><td>Fine for exploration; don't make a client deadline depend on it. Check gating on your own account</td></tr>
+<tr><td class="name">Jitter pricing</td><td>Could not be verified — the pricing page renders client-side and the only third-party figure has mismatched tier names</td><td>Check in a browser before including in any budget</td></tr>
+</tbody>
+</table>
+</div>
+
+<h3>What I'd do in the first week</h3>
+<ol>
+  <li><b>Build one scene end-to-end</b> — Illustrator artwork → "web" export preset → SVGO → <code>scene-01.svg</code> + <code>scene-01.motion.ts</code> → GSAP scrub in the actual framework. One scene proves the whole pipeline and surfaces every export pathology at once.</li>
+  <li><b>Decide React vs Svelte on the animation evidence, not just the app.</b> React gets first-party Motion, R3F/drei and Rive hooks; Svelte gets a thinner Three wrapper (Threlte), better native ergonomics for hand-rolled scrollytelling, and the only official dotLottie wrapper — but no official Motion or Rive binding. If the answer is Svelte, GSAP becomes near-mandatory rather than merely recommended.</li>
+  <li><b>Set the performance budget before the storyboard</b>, so "can this scene be 8,000 dots" is answered by a number rather than an argument.</li>
+  <li><b>Write the <code>MOTION.md</code> id convention before any artwork is drawn.</b> It's ten minutes and it's the difference between Claude writing your timelines and Claude drowning in path data.</li>
+</ol>
+
+</main>
+
+<footer class="wrap">
+  <p><b>Method.</b> Every version number, publish date and price above was verified against live sources on 18 August 2026. Bundle sizes were measured from published npm tarballs at gzip −9 rather than quoted from marketing or Bundlephobia (whose API is currently unusable). Items that could not be verified are flagged as such in §10 rather than smoothed over — notably Jitter's pricing, Motion+'s current price, and the Cavalry Web Player's redistribution terms.</p>
+  <p style="margin-top:22px"><b>Sources</b></p>
+  <div class="srcs">
+    <a href="https://gsap.com/standard-license/">GSAP standard licence</a> ·
+    <a href="https://webflow.com/blog/gsap-becomes-free">Webflow: GSAP becomes free</a> ·
+    <a href="https://gsap.com/docs/v3/Plugins/ScrollTrigger/">ScrollTrigger docs</a> ·
+    <a href="https://gsap.com/docs/v3/Plugins/MorphSVGPlugin/">MorphSVG docs</a> ·
+    <a href="https://gsap.com/resources/svg/">GSAP SVG resources</a> ·
+    <a href="https://motion.dev/docs/scroll">Motion scroll()</a> ·
+    <a href="https://motion.dev/docs/react-svg-animation">Motion SVG animation</a> ·
+    <a href="https://motion.dev/plus">Motion+</a> ·
+    <a href="https://animejs.com/documentation/events/onscroll/">Anime.js onScroll</a> ·
+    <a href="https://animejs.com/documentation/svg">Anime.js SVG</a> ·
+    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/animation-timeline">MDN animation-timeline</a> ·
+    <a href="https://caniuse.com/mdn-css_properties_animation-timeline">caniuse: animation-timeline</a> ·
+    <a href="https://webkit.org/blog/17101/a-guide-to-scroll-driven-animations-with-just-css/">WebKit: scroll-driven animations</a> ·
+    <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1676779">Firefox tracking bug</a> ·
+    <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transform-box">MDN transform-box</a> ·
+    <a href="https://css-tricks.com/transforms-on-svg-elements/">CSS-Tricks: transforms on SVG</a> ·
+    <a href="https://rive.app/pricing">Rive pricing</a> ·
+    <a href="https://rive.app/blog/rive-s-new-9-mo-plan">Rive: exports move to paid</a> ·
+    <a href="https://rive.app/docs/runtimes/web/data-binding.md">Rive data binding</a> ·
+    <a href="https://rive.app/docs/editor/fundamentals/importing-assets">Rive asset import</a> ·
+    <a href="https://lottiefiles.com/pricing">LottieFiles pricing</a> ·
+    <a href="https://help.lottiefiles.com/commercial-use-guide">LottieFiles commercial-use guide</a> ·
+    <a href="https://gsap.com/docs/v3/HelperFunctions/helpers/LottieScrollTrigger/">LottieScrollTrigger helper</a> ·
+    <a href="https://github.com/LottieFiles/dotlottie-web">dotlottie-web</a> ·
+    <a href="https://cavalry.studio/docs/web-player/api/">Cavalry Web Player API</a> ·
+    <a href="https://www.cgchannel.com/2026/04/canva-makes-motion-graphics-and-animation-app-cavalry-free/">Canva makes Cavalry free</a> ·
+    <a href="https://docs.cavalry.scenegroup.co/user-interface/menus/window-menu/render-manager/lottie-export/">Cavalry Lottie export limits</a> ·
+    <a href="https://spline.design/pricing">Spline pricing</a> ·
+    <a href="https://docs.spline.design/exporting-your-scene/web/exporting-as-code">Spline code export</a> ·
+    <a href="https://docs.spline.design/interaction-states-events-and-actions/events/scroll-event">Spline scroll event</a> ·
+    <a href="https://jitter.video/pricing/">Jitter pricing</a> ·
+    <a href="https://help.jitter.video/en/articles/6603809-exporting-to-lottie">Jitter Lottie export</a> ·
+    <a href="https://typeflow.tools/">Typeflow</a> ·
+    <a href="https://the-brandidentity.com/project/algos-typeflow-makes-procedural-type-animation-free-and-browser-based">The Brand Identity on Typeflow</a> ·
+    <a href="https://threejs.org/manual/en/webgpurenderer.html">Three.js WebGPURenderer</a> ·
+    <a href="https://drei.docs.pmnd.rs/controls/scroll-controls">drei ScrollControls</a> ·
+    <a href="https://threlte.xyz/">Threlte</a> ·
+    <a href="https://pixijs.com/8.x/guides/components/assets/svg">PixiJS SVG limits</a> ·
+    <a href="https://pixijs.com/8.x/guides/concepts/performance-tips">PixiJS performance tips</a> ·
+    <a href="https://deck.gl/docs/developer-guide/animations-and-transitions">deck.gl transitions</a> ·
+    <a href="https://deck.gl/docs/whats-new">deck.gl what's new</a> ·
+    <a href="https://jeffhuang.com/papers/SSVG_TVCG22.pdf">Schwab et al., Scalable SVG (TVCG 2022)</a> ·
+    <a href="https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Animation_performance_and_frame_rate">MDN animation performance</a> ·
+    <a href="https://www.figma.com/blog/introducing-figma-motion/">Introducing Figma Motion</a> ·
+    <a href="https://help.figma.com/hc/en-us/articles/41274629073303-Explore-Figma-Motion">Figma Motion docs</a> ·
+    <a href="https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/">Figma MCP tools</a> ·
+    <a href="https://help.figma.com/hc/en-us/articles/13402894554519-Export-formats-and-settings-for-static-designs">Figma export settings</a> ·
+    <a href="https://css-tricks.com/illustrator-to-svg/">CSS-Tricks: Illustrator to SVG</a> ·
+    <a href="https://svgo.dev/docs/plugins/cleanupIds/">SVGO cleanupIds</a> ·
+    <a href="https://jakearchibald.github.io/svgomg/">SVGOMG</a> ·
+    <a href="https://react-svgr.com/docs/options/">SVGR options</a> ·
+    <a href="https://github.com/ZeitOnline/scrolleo">Scrolleo</a> ·
+    <a href="https://github.com/russellsamora/scrollama">Scrollama</a> ·
+    <a href="https://github.com/basementstudio/scrollytelling">basement.studio scrollytelling</a> ·
+    <a href="https://reuters-graphics.github.io/example_svelte-graph-patterns/">Reuters Svelte graph patterns</a> ·
+    <a href="https://tympanus.net/codrops/2026/05/21/creating-scroll-driven-svg-map-animations-with-gsap/">Codrops: scroll-driven SVG maps</a> ·
+    <a href="https://www.framer.com/blog/web-animation-tools/">Framer: 8 web animation tools</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- shared: scroll progress inside a pane ---------- */
+  function pane(sel, onProgress){
+    var el = document.querySelector('[data-demo="'+sel+'"]');
+    if(!el) return;
+    var bar = el.querySelector('.prog'), hint = el.querySelector('.hint'), read = el.querySelector('.readout');
+    var ticking = false;
+    function update(){
+      ticking = false;
+      var max = el.scrollHeight - el.clientHeight;
+      var p = max > 0 ? Math.min(1, Math.max(0, el.scrollTop / max)) : 0;
+      if(bar) bar.style.width = (p*100).toFixed(2)+'%';
+      if(hint) hint.style.opacity = p > 0.03 ? 0 : 1;
+      if(read) read.textContent = 'progress ' + p.toFixed(3);
+      onProgress(p);
+    }
+    el.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(update); } }, {passive:true});
+    update();
+    return update;
+  }
+  var lerp = function(a,b,t){ return a + (b-a)*t; };
+  var clamp01 = function(v){ return v < 0 ? 0 : v > 1 ? 1 : v; };
+  // map p from [a,b] to [0,1]
+  var seg = function(p,a,b){ return clamp01((p-a)/(b-a)); };
+  var ease = function(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; };
+
+  /* ---------- demo 1: draw on scroll ---------- */
+  (function(){
+    var path = document.getElementById('d1-line');
+    if(!path) return;
+    var len = path.getTotalLength();
+    path.style.strokeDasharray = len + ' ' + len;
+    var dot = document.getElementById('d1-dot');
+    var callout = document.getElementById('d1-callout');
+    pane('draw', function(p){
+      var t = ease(seg(p, 0, .85));
+      path.style.strokeDashoffset = len * (1 - t);
+      var pt = path.getPointAtLength(len * t);
+      dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y);
+      dot.style.opacity = t > .002 ? 1 : 0;
+      callout.setAttribute('opacity', seg(p, .72, .92).toFixed(3));
+    });
+  })();
+
+  /* ---------- demo 2: sticky build ---------- */
+  (function(){
+    var g = document.getElementById('d2-bars');
+    if(!g) return;
+    var vals = [.42,.55,.38,.61,.49,.72,.58,.95,.44,.51,.66,.47];
+    var W = 30, gap = 11, x0 = 82, base = 250;
+    var bars = vals.map(function(v,i){
+      var h = v * 165;
+      var el = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      el.setAttribute('x', x0 + i*(W+gap)); el.setAttribute('y', base - h);
+      el.setAttribute('width', W); el.setAttribute('height', h);
+      el.setAttribute('rx', 3);
+      el.style.transformOrigin = (x0 + i*(W+gap) + W/2) + 'px ' + base + 'px';
+      g.appendChild(el);
+      return el;
+    });
+    var mean = document.getElementById('d2-mean'), flag = document.getElementById('d2-flag');
+    pane('build', function(p){
+      bars.forEach(function(el,i){
+        var start = .05 + (i/bars.length)*0.42;
+        var t = ease(seg(p, start, start + .16));
+        el.style.transform = 'scaleY('+ t.toFixed(4) +')';
+        el.setAttribute('fill', i===7 && p>.78 ? '#fb7185' : '#5eead4');
+        el.setAttribute('fill-opacity', i===7 || p<.78 ? 1 : .35);
+      });
+      mean.setAttribute('opacity', seg(p,.6,.72).toFixed(3));
+      flag.setAttribute('opacity', seg(p,.8,.93).toFixed(3));
+    });
+  })();
+
+  /* ---------- demo 3: morph ---------- */
+  (function(){
+    var el = document.getElementById('d3-area');
+    if(!el) return;
+    var cap = document.getElementById('d3-cap');
+    // two datasets, same length => same point count => interpolable
+    var A = [.30,.34,.41,.52,.66,.78,.86,.90,.88,.80,.66,.50,.36,.28,.22];
+    var B = [.72,.80,.86,.74,.55,.38,.30,.36,.52,.70,.84,.90,.80,.60,.40];
+    var n = A.length, x0 = 60, x1 = 560, base = 250, top = 60;
+    function d(t){
+      var pts = [];
+      for(var i=0;i<n;i++){
+        var v = lerp(A[i], B[i], t);
+        var x = x0 + (x1-x0)*(i/(n-1));
+        var y = base - v*(base-top);
+        pts.push([x,y]);
+      }
+      var s = 'M' + pts[0][0].toFixed(1) + ' ' + pts[0][1].toFixed(1);
+      for(var j=1;j<n;j++){
+        var p0 = pts[j-1], p1 = pts[j], mx = (p0[0]+p1[0])/2;
+        s += ' C' + mx.toFixed(1) + ' ' + p0[1].toFixed(1) + ',' + mx.toFixed(1) + ' ' + p1[1].toFixed(1) + ',' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1);
+      }
+      s += ' L' + x1 + ' ' + base + ' L' + x0 + ' ' + base + ' Z';
+      return s;
+    }
+    pane('morph', function(p){
+      var t = ease(seg(p,.12,.88));
+      el.setAttribute('d', d(t));
+      cap.textContent = t < .04 ? 'before →' : t > .96 ? '← after' : 'morphing · ' + Math.round(t*100) + '%';
+      cap.setAttribute('fill', t<.04||t>.96 ? '#98a0aa' : '#93c5fd');
+    });
+  })();
+
+  /* ---------- demo 4: node-count stress test ---------- */
+  (function(){
+    var svg = document.getElementById('d4-svg'), range = document.getElementById('d4-range');
+    if(!svg || !range) return;
+    var countEl = document.getElementById('d4-count'), fpsEl = document.getElementById('d4-fps'), vEl = document.getElementById('d4-verdict');
+    var nodes = [], seeds = [];
+    var NS = 'http://www.w3.org/2000/svg';
+
+    function build(n){
+      svg.textContent = ''; nodes = []; seeds = [];
+      var frag = document.createDocumentFragment();
+      for(var i=0;i<n;i++){
+        var c = document.createElementNS(NS,'circle');
+        var x = 10 + Math.random()*580, y = 10 + Math.random()*240;
+        c.setAttribute('cx', x.toFixed(1)); c.setAttribute('cy', y.toFixed(1));
+        c.setAttribute('r', (1.1 + Math.random()*2.2).toFixed(2));
+        c.setAttribute('fill', i % 9 === 0 ? '#ffc857' : '#5eead4');
+        c.setAttribute('fill-opacity', (0.25 + Math.random()*0.5).toFixed(2));
+        frag.appendChild(c);
+        nodes.push(c);
+        seeds.push({x:x, y:y, a: Math.random()*Math.PI*2, r: 3 + Math.random()*9, s: .5 + Math.random()*1.5});
+      }
+      svg.appendChild(frag);
+    }
+
+    var frames = 0, last = performance.now(), running = true;
+    function tick(now){
+      if(!running) return;
+      var t = now/1000;
+      for(var i=0;i<nodes.length;i++){
+        var s = seeds[i];
+        // transform-only animation — the fast path
+        var dx = Math.cos(t*s.s + s.a)*s.r, dy = Math.sin(t*s.s + s.a)*s.r;
+        nodes[i].setAttribute('transform','translate('+dx.toFixed(2)+','+dy.toFixed(2)+')');
+      }
+      frames++;
+      if(now - last >= 500){
+        var fps = Math.round(frames*1000/(now-last));
+        frames = 0; last = now;
+        fpsEl.textContent = fps + ' fps';
+        fpsEl.className = 'fps ' + (fps >= 50 ? 'good' : fps >= 28 ? 'ok' : 'bad');
+        vEl.textContent = fps >= 50 ? 'smooth — safe on mobile too'
+          : fps >= 28 ? 'desktop-only; phones will struggle'
+          : 'switch to canvas';
+      }
+      requestAnimationFrame(tick);
+    }
+
+    range.addEventListener('input', function(){
+      countEl.textContent = range.value;
+      build(+range.value);
+    });
+
+    // only run while visible, so it doesn't burn the whole page's frame budget
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting && !running){ running = true; last = performance.now(); frames = 0; requestAnimationFrame(tick); }
+        else if(!e.isIntersecting){ running = false; }
+      });
+    }, {threshold: 0.15});
+
+    build(+range.value);
+    if(reduce){
+      fpsEl.textContent = 'paused';
+      fpsEl.className = 'fps ok';
+      vEl.textContent = 'reduced-motion is on — stress test disabled';
+      running = false;
+    } else {
+      running = false;
+      io.observe(svg.closest('.demo'));
+    }
+  })();
+})();
+</script>
+
+<a id="fn-home" href="../" aria-label="Back to Field Notes index">&#8592;&nbsp;Field&nbsp;Notes</a>
+<style>
+#fn-home{
+  position:fixed;z-index:9999;text-decoration:none;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;
+  letter-spacing:.13em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid;line-height:1;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:opacity .15s;
+}
+#fn-home:hover{opacity:1}
+#fn-home:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+#fn-home{top:14px;right:16px;color:#ffc857;border-color:#3b3f49;background:rgba(14,16,19,.82);opacity:.85}
+</style>
+<script>
+(function(){
+  var a=document.getElementById("fn-home");
+  if(!a) return;
+  // Only shown where a sibling index actually exists — the published artifacts
+  // are standalone, and a link to "../" there would go nowhere useful.
+  if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation)\/?(index\.html)?$/.test(location.pathname)) a.remove();
+})();
+</script>
+</body>
+</html>

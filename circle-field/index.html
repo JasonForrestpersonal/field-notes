@@ -1,0 +1,791 @@
+<title>Circle Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&family=Martian+Mono:wght@400;500&display=swap">
+
+<style>
+:root{
+  --paper:#e9ece6;
+  --paper-2:#dfe3db;
+  --card:#f4f6f1;
+  --ink:#15180f;
+  --ink-2:#41463a;
+  --ink-3:#787f6f;
+  --rule:#c3c9bb;
+  --blue:#1b3fd8;
+  --orange:#ff5a00;
+  --stage:#07070a;
+  --disp:"Familjen Grotesk",Helvetica,Arial,sans-serif;
+  --serif:"Newsreader",Georgia,serif;
+  --mono:"Martian Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:16px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+.shell{max-width:1180px;margin:0 auto;padding:0 20px 100px}
+
+/* ---- masthead ---- */
+.mast{padding:44px 0 22px;border-bottom:2px solid var(--ink)}
+.tagrow{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.tag{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;
+  border:1px solid var(--ink);padding:3px 8px;
+}
+.tag.b{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tag.o{background:var(--orange);color:#fff;border-color:var(--orange)}
+h1{
+  font-family:var(--disp);font-weight:700;font-size:clamp(40px,8vw,86px);
+  line-height:.92;letter-spacing:-.035em;margin:0 0 16px;text-wrap:balance;
+}
+.dek{font-size:19px;line-height:1.5;max-width:56ch;margin:0;color:var(--ink-2)}
+.dek b{font-weight:400;font-style:normal;background:linear-gradient(transparent 62%,rgba(27,63,216,.22) 0);color:var(--ink)}
+
+/* ---- stage ---- */
+.rig{margin:26px 0 0;border:2px solid var(--ink);background:var(--stage)}
+.rig-bar{
+  display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:8px 12px;background:var(--ink);color:var(--paper);
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;text-transform:uppercase;
+}
+.rig-bar b{color:var(--orange);font-weight:500}
+#stage{display:block;width:100%;height:520px;background:var(--stage)}
+@media(max-width:700px){#stage{height:380px}}
+
+/* ---- rack ---- */
+.rack{display:grid;grid-template-columns:1fr 320px;gap:0;border:2px solid var(--ink);border-top:none}
+@media(max-width:860px){.rack{grid-template-columns:1fr}}
+.knobs{padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 20px;align-content:start;background:var(--card)}
+.seedbox{padding:16px;background:var(--paper-2);border-left:2px solid var(--ink)}
+@media(max-width:860px){.seedbox{border-left:none;border-top:2px solid var(--ink)}}
+.k{display:grid;gap:3px}
+.k label{
+  font-family:var(--mono);font-size:9px;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-3);display:flex;justify-content:space-between;gap:8px;
+}
+.k label b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:16px;background:transparent;margin:0;cursor:ew-resize}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--rule)}
+input[type=range]::-moz-range-track{height:2px;background:var(--rule)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--blue);margin-top:-5px;border:none;border-radius:0}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--blue);border:none;border-radius:0}
+input[type=range]:focus-visible{outline:2px solid var(--orange);outline-offset:3px}
+
+.seedbox h3{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 10px;color:var(--ink-3);font-weight:500}
+#handle{
+  width:100%;font-family:var(--mono);font-size:12px;padding:9px 10px;
+  border:1px solid var(--ink);background:var(--card);color:var(--ink);
+}
+#handle:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.chips button{
+  font-family:var(--mono);font-size:9px;letter-spacing:.03em;
+  border:1px solid var(--rule);background:var(--card);color:var(--ink-2);
+  padding:4px 7px;cursor:pointer;
+}
+.chips button:hover{border-color:var(--ink);color:var(--ink)}
+.chips button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.swatches{display:flex;gap:0;margin-top:12px;height:26px;border:1px solid var(--ink)}
+.swatches div{flex:1}
+.seedmeta{font-family:var(--mono);font-size:9.5px;color:var(--ink-3);margin-top:9px;line-height:1.8;letter-spacing:.02em}
+.seedmeta b{color:var(--ink);font-weight:500}
+.btnrow{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}
+.btnrow button{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;
+  border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:7px 10px;cursor:pointer;
+}
+.btnrow button.ghost{background:transparent;color:var(--ink)}
+.btnrow button:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+/* ---- prose ---- */
+h2{
+  font-family:var(--disp);font-weight:700;font-size:clamp(26px,4vw,38px);letter-spacing:-.025em;
+  margin:70px 0 6px;text-wrap:balance;line-height:1.02;
+}
+.kick{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin:0 0 18px}
+h3{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:-.012em;margin:32px 0 6px}
+p{max-width:68ch;margin:0 0 15px}
+p b{font-weight:600}
+ul,ol{max-width:68ch;padding-left:20px;margin:0 0 15px}
+li{margin-bottom:9px}
+code{font-family:var(--mono);font-size:.78em;background:var(--paper-2);border:1px solid var(--rule);padding:1px 4px}
+pre{background:var(--ink);color:#dfe3db;padding:16px 18px;overflow-x:auto;font-family:var(--mono);font-size:11px;line-height:1.7;margin:0 0 18px;border:2px solid var(--ink)}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:inherit}
+pre .c{color:#7e8776}
+pre .k{color:#ff5a00}
+pre .s{color:#93a8ff}
+
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:24px 0;border:2px solid var(--ink)}
+@media(max-width:820px){.pipe{grid-template-columns:1fr 1fr}}
+.pipe > div{padding:14px;border-right:1px solid var(--ink)}
+.pipe > div:last-child{border-right:none}
+@media(max-width:820px){.pipe > div:nth-child(2n){border-right:none}.pipe > div:nth-child(-n+2){border-bottom:1px solid var(--ink)}}
+.pipe h4{font-family:var(--mono);font-size:9px;letter-spacing:.07em;text-transform:uppercase;margin:0 0 3px;color:var(--orange)}
+.pipe b{font-family:var(--disp);font-size:15px;font-weight:600;display:block;margin-bottom:5px;letter-spacing:-.01em}
+.pipe p{font-size:13px;line-height:1.5;margin:0;color:var(--ink-2)}
+.pipe canvas{width:100%;height:150px;display:block;margin-bottom:10px;background:var(--stage);border:1px solid var(--ink)}
+
+.note{border-left:3px solid var(--blue);background:var(--card);padding:14px 18px;margin:22px 0;max-width:68ch;font-size:15px}
+.note b{font-weight:600}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;margin:18px 0}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--ink);font-weight:500}
+td.n{color:var(--blue);white-space:nowrap}
+.wrap-x{overflow-x:auto}
+footer{margin-top:70px;padding-top:20px;border-top:2px solid var(--ink);font-size:13px;color:var(--ink-3);max-width:68ch;font-family:var(--disp)}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell">
+
+<header class="mast">
+  <div class="tagrow">
+    <span class="tag b">Teardown</span>
+    <span class="tag">cavempt.com</span>
+    <span class="tag o">Working recreation</span>
+    <span class="tag">JFA R&amp;D · Aug 2026</span>
+  </div>
+  <h1>It's not generative.<br>It's one draw call<br>and a blur.</h1>
+  <p class="dek">The Cav Empt background is a field of <b>expanding, segmented rings</b> drawn as GPU instances, then run through a <b>blur and an alpha threshold</b> — the trick that makes separate shapes melt into each other. The per-product variation isn't randomness. It's a seed.</p>
+</header>
+
+<div class="rig">
+  <div class="rig-bar">
+    <span>Live recreation · WebGL2 · no libraries</span>
+    <span id="stat">— arcs · — fps</span>
+  </div>
+  <canvas id="stage"></canvas>
+</div>
+
+<div class="rack">
+  <div class="knobs" id="knobs"></div>
+  <div class="seedbox">
+    <h3>Seed → identity</h3>
+    <input id="handle" type="text" value="washed-cn-shoulder-bag" spellcheck="false" aria-label="Product handle used as the seed">
+    <div class="chips" id="chips"></div>
+    <div class="swatches" id="swatches"></div>
+    <div class="seedmeta" id="seedmeta"></div>
+    <div class="btnrow">
+      <button id="btn-pulse">Pulse</button>
+      <button id="btn-goo" class="ghost">Goo: on</button>
+      <button id="btn-play" class="ghost">Pause</button>
+    </div>
+  </div>
+</div>
+
+<h2>What it actually is</h2>
+<p class="kick">Read off the live page, not guessed</p>
+
+<p>The page carries a single <code>&lt;canvas&gt;</code> inside a container classed <code>circle-field-container</code>, fixed to the viewport at <code>z-index: -1</code> — a background plate behind the entire site. It holds a <b>WebGL</b> context, driven by three.js inside a Nuxt app. Nothing about it is procedural noise or a generative art library. It's a particle system with an unusual primitive and one clever post-process.</p>
+
+<p>The instanced attributes give the whole game away. Each instance carries a centre, a radius, an angle, a <i>half-arc</i>, a <i>half-stroke</i> and a colour — so the primitive being drawn is not a circle but <b>a segment of a stroked circle</b>. One quad per arc, thousands of arcs, one draw call. The fragment shader does the rest: distance from the instance centre compared against the radius gives the stroke band, the angle relative to the instance's own angle clips it to a sweep, and a smoothstep on the result antialiases the edge.</p>
+
+<div class="wrap-x">
+<table>
+<thead><tr><th>What's in the shader</th><th>Type</th><th>What it means</th></tr></thead>
+<tbody>
+<tr><td class="n">aCorner</td><td>vec2</td><td>The quad corner. The only non-instanced attribute — four vertices, reused for every arc.</td></tr>
+<tr><td class="n">iCenter</td><td>vec2</td><td>Per-arc centre. Because it's per-<i>arc</i> and not per-ring, segments of one ring can drift apart — that's the jitter.</td></tr>
+<tr><td class="n">iRadius</td><td>float</td><td>Current radius. Grows over the ring's life.</td></tr>
+<tr><td class="n">iAngle</td><td>float</td><td>Where on the ring this segment sits. Advances over time = spin.</td></tr>
+<tr><td class="n">iHalfArc</td><td>float</td><td>Half the sweep. The parameter that turns a ring into dashes.</td></tr>
+<tr><td class="n">iHalfStroke</td><td>float</td><td>Half the line weight, in pixels.</td></tr>
+<tr><td class="n">iColor</td><td>vec3</td><td>Per-arc colour, drawn from the palette.</td></tr>
+<tr><td class="n">uTex / uDir / uRadius / uThreshold</td><td>—</td><td>A second program: sample a texture along a direction, then threshold. This is the post-process.</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2>The four passes</h2>
+<p class="kick">Blur plus threshold is the whole look</p>
+
+<div class="pipe">
+  <div><canvas id="p1"></canvas><h4>Pass 1</h4><b>Draw arcs</b><p>Instanced quads, one per segment. Crisp, separate, a bit thin and mechanical on its own.</p></div>
+  <div><canvas id="p2"></canvas><h4>Pass 2</h4><b>Blur</b><p>Separable — horizontal then vertical, repeated. Colours bleed into each other here, which is where the palette starts to mix.</p></div>
+  <div><canvas id="p3"></canvas><h4>Pass 3</h4><b>Threshold alpha</b><p>Cut the blurred alpha at a hard edge. Anything that overlapped now reads as one continuous body.</p></div>
+  <div><canvas id="p4"></canvas><h4>Pass 4</h4><b>Composite</b><p>Un-premultiply to recover the mixed colour, lay it on the background.</p></div>
+</div>
+
+<p>Pass 3 is the one that matters, and it's an old trick — the <b>"gooey filter"</b>, usually done in CSS with an SVG <code>feGaussianBlur</code> into an <code>feColorMatrix</code> that steepens the alpha channel. Blur spreads each shape's alpha into a soft halo; where two halos overlap the alpha sums past the threshold; the threshold snaps it back to a hard edge. The result is that shapes near each other fuse with a real fillet between them, like surface tension. Shapes far apart stay separate. Nothing computes the merge — it falls out of the arithmetic.</p>
+
+<pre><code><span class="c">// passes 3 and 4, in full</span>
+<span class="k">vec4</span>  c   = texture(uTex, vUv);
+<span class="k">vec3</span>  rgb = c.a &gt; <span class="s">0.002</span> ? c.rgb / c.a : <span class="k">vec3</span>(<span class="s">0.0</span>);   <span class="c">// un-premultiply</span>
+<span class="k">float</span> g   = min(c.a * uGain, <span class="s">1.0</span>);                  <span class="c">// put back what the blur took</span>
+<span class="k">float</span> a   = smoothstep(uThreshold - uSoft, uThreshold + uSoft, g);
+frag = <span class="k">vec4</span>(mix(uBg, rgb, a), <span class="s">1.0</span>);</code></pre>
+
+<p>The <code>uGain</code> line is the one that isn't obvious, and it's the reason my first build rendered a completely black frame. Blurring a 9-pixel stroke over a 40-pixel kernel divides its peak alpha by roughly four, so nothing ever reaches a threshold of 0.34 and the whole field cuts to background. The SVG version of this filter has the same term hiding in plain sight — the classic <code>feColorMatrix</code> recipe multiplies the alpha channel by about 18 before subtracting 7. That multiply isn't stylistic. Without it there is no image.</p>
+
+<div class="note"><b>Why WebGL and not SVG here.</b> The gooey filter is famously cheap to write in SVG and famously expensive to run — an animated <code>feGaussianBlur</code> over a full-viewport region is per-frame raster work that mostly isn't GPU-accelerated, and it will melt a laptop fan at 1400×800. Moving it to a shader makes the blur nearly free and lets the arc count go into the thousands. This is exactly the escalation ladder from the animation review: stay in SVG until a specific effect makes it impossible, then move that one layer.</div>
+
+<h2>Where the per-item variation comes from</h2>
+<p class="kick">Seeded, not random</p>
+
+<p>The component takes overrides — background colour, emitter positions, and a parameter block — so a product page can hand it a different configuration than the homepage. But the interesting version of this, and the one worth stealing, is to <b>derive the configuration from the item's own identifier</b>. Hash the product handle into a 32-bit integer, run a small deterministic PRNG off it, and pull the palette and parameters from that stream.</p>
+
+<pre><code><span class="c">// deterministic: same handle, same field, forever, on every device</span>
+<span class="k">function</span> hash(str){
+  <span class="k">let</span> h = <span class="s">2166136261</span>;
+  <span class="k">for</span> (<span class="k">const</span> ch <span class="k">of</span> str) h = Math.imul(h ^ ch.charCodeAt(<span class="s">0</span>), <span class="s">16777619</span>);
+  <span class="k">return</span> h &gt;&gt;&gt; <span class="s">0</span>;
+}
+<span class="k">const</span> rng  = mulberry32(hash(<span class="s">"washed-cn-shoulder-bag"</span>));
+<span class="k">const</span> hue  = rng() * <span class="s">360</span>;
+<span class="k">const</span> segs = <span class="s">3</span> + Math.floor(rng() * <span class="s">7</span>);</code></pre>
+
+<p>Type a different handle into the box above and the whole field re-derives: palette, segment count, spin direction, arc gaps. It never repeats for the same string and never differs across two visitors. That's the property that makes it usable as <b>identity</b> rather than decoration — a customer who sees the pink-and-acid version of a product and comes back tomorrow sees the same one.</p>
+
+<h2>How we'd use it</h2>
+<p class="kick">Four honest applications, one warning</p>
+
+<h3>1 · A generative mark per record</h3>
+<p>The strongest version for our work isn't a shop background — it's <b>a distinct visual identity per item in a catalogue</b>, generated from the item's key. A neighbourhood in a civic dataset, a dataset in a library, a speaker in a programme, a chapter in a report. Seeded from the name, so it's stable, needs no design time per item, and stays recognisably part of one system because every instance shares the same generator and parameter ranges. This is the cheapest way to give five hundred things individual character without drawing five hundred things.</p>
+
+<h3>2 · Parameters bound to data, not to a PRNG</h3>
+<p>Swap the random stream for real variables and the decoration becomes an encoding. Segment count from a category count; ring interval from event frequency; expansion speed from rate of change; palette from a sequential ramp rather than a random hue. The caution is the same one as the sphere shading test: <b>the moment a viewer could plausibly read meaning into a channel, that channel has to actually carry meaning</b> — or be visibly constant. A field where radius means nothing but looks like it means something is worse than a field that's obviously ornamental.</p>
+
+<h3>3 · The threshold as a density estimator</h3>
+<p>This is the genuinely interesting one. Blur-then-threshold <i>is</i> a kernel density estimate with a hard contour — the blur is the kernel, the threshold is the isoline. Feed it real point data instead of emitted rings and the merging behaviour stops being decorative and starts being a legitimate reading of spatial clustering: marks that fuse are marks within a bandwidth of each other. It's a live, GPU-speed alternative to a contour plot, and it inherits the same caveat — the bandwidth is a choice, and the choice changes the story.</p>
+
+<h3>4 · A poster engine</h3>
+<p>Because the renderer is resolution-independent and seeded, the same code that fills a browser background will render a 300&nbsp;dpi still. Set a seed, freeze a frame, output at print size. For Data Vandals that's a run of unique posters — one per participant, per event, per response — from one script.</p>
+
+<div class="note"><b>The warning.</b> This treatment is strongly associated with one brand right now, and the arc-plus-goo combination is recognisable enough that using it straight will read as a Cav Empt homage rather than as our work. The parts worth taking are the <i>architecture</i> — instanced primitives, a post-process that creates relationships between marks, and a seed that ties output to identity. The primitive itself should be something else. Arcs are their answer. Ours might be line segments, glyph fragments, isolines, or the actual geometry of the data we're given.</p></div>
+
+<h2>What it costs</h2>
+<p class="kick">Budget, for once, is not the problem</p>
+
+<p>One draw call for the whole field regardless of arc count. Two to six full-screen passes for the blur depending on radius. At the default settings above, roughly <span id="cost">—</span>. The instance buffer is rebuilt on the CPU each frame, which is the only part that scales linearly with arc count, and it's a tight loop over a <code>Float32Array</code> — a few thousand arcs is nothing. The practical limit is fill rate on the blur passes, not geometry, so the lever when it gets slow is <b>blur at half resolution</b>, not fewer arcs.</p>
+
+<p>Recreated here in about 300 lines of raw WebGL2 with no dependencies, because the whole thing is two shader programs and a ring buffer. Cav Empt reach for three.js, which is a reasonable call inside a Nuxt app that may want more 3D later — but it means shipping ~130&nbsp;KB gzip of renderer to draw some arcs. If a field like this were the only WebGL on a site, hand-rolling it is a fraction of the weight.</p>
+
+<footer>
+  Observed on cavempt.com, 21 Aug 2026 — attribute names, uniform names and component parameters read from the live page. The implementation on this page is written from scratch against that description; no code was copied. Cav Empt is Sk8thing and Toby Feltwell's label, and the site is theirs — this is a technical read of a public page, not a template.
+</footer>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+var TAU=Math.PI*2;
+var reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- seeded rng ---------------- */
+function fnv(str){var h=2166136261;for(var i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),16777619);}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function hsl2rgb(h,s,l){
+  h=((h%360)+360)%360/360;
+  var q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q;
+  function f(t){t=(t+1)%1;if(t<1/6)return p+(q-p)*6*t;if(t<0.5)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+  return [f(h+1/3),f(h),f(h-1/3)];
+}
+function hex(c){return "#"+c.map(function(v){return ("0"+Math.round(v*255).toString(16)).slice(-2);}).join("");}
+
+/* ---------------- state ---------------- */
+var P = {
+  interval:0.15, speed:135, maxRadius:560, strokeWidth:9,
+  segments:7, segmentSpacing:0.30, segmentShrink:0.35, segmentRandom:0.45,
+  jitter:14, spin:0.5, emitters:4,
+  filterBlur:0.45, filterThreshold:0.34
+};
+var SEEDED = {};           // values derived from the handle
+var handle = "washed-cn-shoulder-bag";
+var goo = true, playing = !reduced;
+
+function deriveSeed(h){
+  var r = mulberry32(fnv(h));
+  var baseHue = r()*360;
+  var scheme = r();
+  var offs = scheme<0.34 ? [0,28,-26,54] : scheme<0.67 ? [0,150,-150,180] : [0,18,180,198];
+  var pal = offs.map(function(o,i){
+    return hsl2rgb(baseHue+o+(r()-0.5)*14, 0.62+r()*0.34, 0.42+r()*0.26);
+  });
+  SEEDED = {
+    seed:fnv(h),
+    palette:pal,
+    segments:3+Math.floor(r()*7),
+    spinDir:r()<0.5?-1:1,
+    spacing:0.18+r()*0.42,
+    shrink:0.1+r()*0.6,
+    jitterK:0.4+r()*1.5,
+    emitters:3+Math.floor(r()*3),
+    bg:[0.02+r()*0.03, 0.02+r()*0.03, 0.03+r()*0.05],
+    rnd:r
+  };
+  paintSeedUI();
+}
+function paintSeedUI(){
+  var sw=document.getElementById("swatches");
+  sw.innerHTML = SEEDED.palette.map(function(c){return "<div style='background:"+hex(c)+"'></div>";}).join("");
+  document.getElementById("seedmeta").innerHTML =
+    "seed <b>"+SEEDED.seed.toString(16)+"</b><br>"+
+    "segments <b>"+SEEDED.segments+"</b> · emitters <b>"+SEEDED.emitters+"</b><br>"+
+    "spin <b>"+(SEEDED.spinDir>0?"cw":"ccw")+"</b> · gap <b>"+SEEDED.spacing.toFixed(2)+"</b>";
+}
+
+/* ---------------- webgl helpers ---------------- */
+function compile(gl,type,src){
+  var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)+"\n"+src);
+  return s;
+}
+function program(gl,vs,fs){
+  var p=gl.createProgram();
+  gl.attachShader(p,compile(gl,gl.VERTEX_SHADER,vs));
+  gl.attachShader(p,compile(gl,gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  return p;
+}
+function makeFBO(gl,w,h){
+  var t=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA8,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  var f=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,f);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,t,0);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  return {tex:t,fbo:f,w:w,h:h};
+}
+
+/* ---------------- shaders ---------------- */
+var VS_ARC = `#version 300 es
+in vec2 aCorner;
+in vec2 iCenter; in float iRadius; in float iAngle;
+in float iHalfArc; in float iHalfStroke; in vec3 iColor; in float iAlpha;
+uniform vec2 uRes;
+out vec2 vLocal; out float vR, vHalfArc, vHalfStroke, vAlpha, vAngle; out vec3 vColor;
+void main(){
+  float ext = iRadius + iHalfStroke + 2.0;
+  vLocal = aCorner * ext;
+  vec2 pos = iCenter + vLocal;
+  vec2 c = (pos / uRes) * 2.0 - 1.0;
+  gl_Position = vec4(c.x, -c.y, 0.0, 1.0);
+  vR=iRadius; vHalfArc=iHalfArc; vHalfStroke=iHalfStroke;
+  vColor=iColor; vAlpha=iAlpha; vAngle=iAngle;
+}`;
+var FS_ARC = `#version 300 es
+precision highp float;
+in vec2 vLocal; in float vR, vHalfArc, vHalfStroke, vAlpha, vAngle; in vec3 vColor;
+out vec4 frag;
+const float PI = 3.141592653589793;
+void main(){
+  float d = abs(length(vLocal) - vR) - vHalfStroke;
+  float a = atan(vLocal.y, vLocal.x) - vAngle;
+  a = mod(a + PI, 2.0*PI) - PI;
+  if (abs(a) > vHalfArc && vHalfArc < PI) {
+    vec2 e = vec2(cos(vAngle + sign(a)*vHalfArc), sin(vAngle + sign(a)*vHalfArc)) * vR;
+    d = length(vLocal - e) - vHalfStroke;      // round cap on the segment end
+  }
+  float aa = fwidth(d) + 1e-5;
+  float al = (1.0 - smoothstep(-aa, aa, d)) * vAlpha;
+  if (al <= 0.002) discard;
+  frag = vec4(vColor * al, al);                 // premultiplied
+}`;
+var VS_QUAD = `#version 300 es
+in vec2 aCorner; out vec2 vUv;
+void main(){ vUv = aCorner*0.5 + 0.5; gl_Position = vec4(aCorner,0.0,1.0); }`;
+var FS_BLUR = `#version 300 es
+precision highp float;
+in vec2 vUv; uniform sampler2D uTex; uniform vec2 uDir; uniform float uRadius; uniform vec2 uRes;
+out vec4 frag;
+void main(){
+  vec2 step = uDir * uRadius / uRes;
+  vec4 s = texture(uTex, vUv) * 0.20;
+  s += (texture(uTex, vUv + step*1.0) + texture(uTex, vUv - step*1.0)) * 0.165;
+  s += (texture(uTex, vUv + step*2.0) + texture(uTex, vUv - step*2.0)) * 0.109;
+  s += (texture(uTex, vUv + step*3.0) + texture(uTex, vUv - step*3.0)) * 0.057;
+  s += (texture(uTex, vUv + step*4.0) + texture(uTex, vUv - step*4.0)) * 0.0245;
+  frag = s;
+}`;
+var FS_COMP = `#version 300 es
+precision highp float;
+in vec2 vUv; uniform sampler2D uTex; uniform float uThreshold, uSoft, uGoo, uGain, uMask; uniform vec3 uBg;
+out vec4 frag;
+void main(){
+  vec4 c = texture(uTex, vUv);
+  vec3 rgb = c.a > 0.002 ? c.rgb / c.a : vec3(0.0);
+  // blur thins the alpha; gain it back before cutting, exactly as the SVG
+  // gooey filter does with feColorMatrix (multiply alpha, then subtract)
+  float g = min(c.a * uGain, 1.0);
+  float cut = smoothstep(uThreshold - uSoft, uThreshold + uSoft, g);
+  float a = mix(min(c.a * 1.4, 1.0), cut, uGoo);
+  vec3 outRgb = mix(mix(uBg, rgb, a), vec3(a), uMask);
+  frag = vec4(outRgb, 1.0);
+}`;
+
+/* ---------------- the field ---------------- */
+function CircleField(canvas, opts){
+  opts = opts || {};
+  var SC = opts.scale || 1;                 // pixel-space params are authored for a ~520px stage
+  var gl = canvas.getContext("webgl2", {antialias:false, alpha:false, premultipliedAlpha:true});
+  if(!gl) return null;
+  var progArc = program(gl, VS_ARC, FS_ARC);
+  var progBlur = program(gl, VS_QUAD, FS_BLUR);
+  var progComp = program(gl, VS_QUAD, FS_COMP);
+
+  var quad = new Float32Array([-1,-1, 1,-1, -1,1, 1,1]);
+  var vboQuad = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vboQuad); gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+  var MAX = opts.max || 4000;
+  var STRIDE = 9;                                  // cx,cy,r,ang,halfArc,halfStroke,r,g,b  (+alpha = 10)
+  var data = new Float32Array(MAX*10);
+  var vboInst = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vboInst); gl.bufferData(gl.ARRAY_BUFFER, data.byteLength, gl.DYNAMIC_DRAW);
+
+  var vaoArc = gl.createVertexArray();
+  gl.bindVertexArray(vaoArc);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vboQuad);
+  var lc = gl.getAttribLocation(progArc,"aCorner");
+  gl.enableVertexAttribArray(lc); gl.vertexAttribPointer(lc,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vboInst);
+  var specs=[["iCenter",2],["iRadius",1],["iAngle",1],["iHalfArc",1],["iHalfStroke",1],["iColor",3],["iAlpha",1]];
+  var off=0;
+  specs.forEach(function(s){
+    var loc=gl.getAttribLocation(progArc,s[0]);
+    if(loc>=0){ gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,s[1],gl.FLOAT,false,40,off); gl.vertexAttribDivisor(loc,1); }
+    off += s[1]*4;
+  });
+  gl.bindVertexArray(null);
+
+  var vaoQuad = gl.createVertexArray();
+  gl.bindVertexArray(vaoQuad);
+  gl.bindBuffer(gl.ARRAY_BUFFER, vboQuad);
+  var lq = gl.getAttribLocation(progBlur,"aCorner");
+  gl.enableVertexAttribArray(lq); gl.vertexAttribPointer(lq,2,gl.FLOAT,false,0,0);
+  gl.bindVertexArray(null);
+
+  var fboA=null, fboB=null, W=0, H=0, DPR=1;
+  function resize(){
+    DPR = Math.min(2, window.devicePixelRatio||1);
+    var r = canvas.getBoundingClientRect();
+    var w = Math.max(2, Math.round(r.width*DPR)), h = Math.max(2, Math.round(r.height*DPR));
+    if(w===W && h===H) return;
+    W=w; H=h; canvas.width=W; canvas.height=H;
+    if(fboA){ gl.deleteTexture(fboA.tex); gl.deleteFramebuffer(fboA.fbo); }
+    if(fboB){ gl.deleteTexture(fboB.tex); gl.deleteFramebuffer(fboB.fbo); }
+    var half = H >= 320 ? 2 : 1;             // half-res blur is a big win, but it blocks up when small
+    var bw = Math.max(2, Math.round(W/half)), bh = Math.max(2, Math.round(H/half));
+    fboA = makeFBO(gl, W, H);
+    fboB = makeFBO(gl, bw, bh);
+    fboC = makeFBO(gl, bw, bh);
+  }
+  var fboC=null;
+
+  /* ring buffer of live rings */
+  var rings=[], lastEmit=0, emitters=[], rnd=Math.random, tick=0;
+  function reseed(){
+    var r = mulberry32(SEEDED.seed ^ 0x9e3779b9);
+    rnd = mulberry32(SEEDED.seed ^ 0x85ebca6b);   // same handle => same field, every time
+    tick = 0;
+    emitters=[];
+    if(opts.centered){ emitters=[{x:0.5,y:0.5}]; return; }
+    var n = opts.emitters || SEEDED.emitters;
+    // stratify across the frame — random placement clumps and leaves dead corners
+    var cols = Math.ceil(Math.sqrt(n)), rows = Math.ceil(n/cols), k = 0;
+    for(var gy=0; gy<rows; gy++) for(var gx=0; gx<cols && k<n; gx++, k++){
+      emitters.push({
+        x: (gx + 0.28 + r()*0.44) / cols,
+        y: (gy + 0.28 + r()*0.44) / rows
+      });
+    }
+    for(var i=emitters.length-1;i>0;i--){ var j=Math.floor(r()*(i+1)); var t=emitters[i]; emitters[i]=emitters[j]; emitters[j]=t; }
+    rings.length=0; lastEmit=0;
+  }
+
+  function emit(t){
+    var e = emitters[tick % emitters.length]; tick++;
+    var segs = Math.max(1, Math.round(P.segments));
+    rings.push({
+      t:t, x:e.x, y:e.y,
+      segs:segs,
+      phase: rnd()*TAU,
+      spin: SEEDED.spinDir * P.spin * (0.6 + rnd()*0.8),
+      col: SEEDED.palette[Math.floor(rnd()*SEEDED.palette.length)],
+      jit: Array.from({length:segs}, function(){ return [rnd()*2-1, rnd()*2-1, rnd()]; })
+    });
+    if(rings.length > 90) rings.shift();
+  }
+
+  var count=0;
+  function build(t){
+    count=0;
+    var life = P.maxRadius / Math.max(1,P.speed);   // seconds; unaffected by scale
+    for(var i=rings.length-1;i>=0;i--){
+      var ring=rings[i], age=t-ring.t;
+      if(age > life){ rings.splice(i,1); continue; }
+      var u = age/life;
+      var rad = age * P.speed * DPR * SC;
+      var alpha = Math.min(1, u*7) * (1 - u*u);
+      if(alpha<=0.01) continue;
+      var cx = ring.x*W, cy = ring.y*H;
+      var shrink = 1 - P.segmentShrink*u;
+      var base = (Math.PI/ring.segs) * (1 - P.segmentSpacing) * shrink;
+      for(var k=0;k<ring.segs && count<MAX;k++){
+        var j = ring.jit[k];
+        var ang = ring.phase + k*(TAU/ring.segs) + ring.spin*age;
+        var ha = Math.max(0.02, base * (1 - P.segmentRandom*j[2]));
+        var jm = P.jitter * SEEDED.jitterK * u * DPR * SC;
+        var o = count*10;
+        data[o  ] = cx + j[0]*jm;
+        data[o+1] = cy + j[1]*jm;
+        data[o+2] = rad;
+        data[o+3] = ang;
+        data[o+4] = ha;
+        data[o+5] = Math.max(0.6, P.strokeWidth*0.5*DPR*SC);
+        data[o+6] = ring.col[0]; data[o+7]=ring.col[1]; data[o+8]=ring.col[2];
+        data[o+9] = alpha;
+        count++;
+      }
+    }
+    return count;
+  }
+
+  function drawArcsTo(target, t){
+    gl.bindFramebuffer(gl.FRAMEBUFFER, target?target.fbo:null);
+    gl.viewport(0,0,target?target.w:W, target?target.h:H);
+    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+    if(!count) return;
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(progArc);
+    gl.uniform2f(gl.getUniformLocation(progArc,"uRes"), target?target.w:W, target?target.h:H);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vboInst);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, data.subarray(0,count*10));
+    gl.bindVertexArray(vaoArc);
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+    gl.bindVertexArray(null);
+    gl.disable(gl.BLEND);
+  }
+
+  function blitBlur(src, dst, dir, radius){
+    gl.bindFramebuffer(gl.FRAMEBUFFER, dst.fbo);
+    gl.viewport(0,0,dst.w,dst.h);
+    gl.useProgram(progBlur);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src.tex);
+    gl.uniform1i(gl.getUniformLocation(progBlur,"uTex"),0);
+    gl.uniform2f(gl.getUniformLocation(progBlur,"uDir"),dir[0],dir[1]);
+    gl.uniform1f(gl.getUniformLocation(progBlur,"uRadius"),radius);
+    gl.uniform2f(gl.getUniformLocation(progBlur,"uRes"),dst.w,dst.h);
+    gl.bindVertexArray(vaoQuad);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.bindVertexArray(null);
+  }
+
+  function composite(src, mask){
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    gl.viewport(0,0,W,H);
+    gl.useProgram(progComp);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src.tex);
+    gl.uniform1i(gl.getUniformLocation(progComp,"uTex"),0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uThreshold"), P.filterThreshold);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uSoft"), 0.05 + (1-P.filterBlur)*0.08);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uGoo"), goo?1:0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uGain"), 1.6 + P.filterBlur*6.5);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uMask"), mask?1:0);
+    var bg = SEEDED.bg || [0.03,0.03,0.04];
+    gl.uniform3f(gl.getUniformLocation(progComp,"uBg"), bg[0],bg[1],bg[2]);
+    gl.bindVertexArray(vaoQuad);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.bindVertexArray(null);
+  }
+
+  var passes = 0;
+  function frame(t){
+    resize();
+    if(t-lastEmit > P.interval){ emit(t); lastEmit=t; }
+    build(t);
+    drawArcsTo(fboA, t);
+    var src = fboA;
+    passes = 0;
+    if(P.filterBlur > 0.01){
+      var iters = 1 + Math.round(P.filterBlur*2.0);
+      // blur is authored against a ~500px-tall stage; scale it or thumbnails over-blur
+      var sc = Math.max(0.3, Math.min(1, H/500));
+      var rad = (0.8 + P.filterBlur*2.4) * sc;
+      blitBlur(fboA, fboB, [1,0], rad); passes++;
+      blitBlur(fboB, fboC, [0,1], rad); passes++;
+      for(var i=1;i<iters;i++){
+        blitBlur(fboC, fboB, [1,0], rad); blitBlur(fboB, fboC, [0,1], rad); passes+=2;
+      }
+      src = fboC;
+    }
+    composite(src);
+  }
+
+  return {
+    frame:frame, reseed:reseed, count:function(){return count;}, passes:function(){return passes;},
+    // single deterministic still, for the pipeline thumbnails
+    still:function(t, stage){
+      resize();
+      rings.length=0;
+      for(var i=0;i<9;i++){ emit(t); rings[rings.length-1].t = t - i*0.34; }
+      build(t);
+      drawArcsTo(fboA, t);
+      if(stage===1){ blitDirect(fboA); return; }
+      var sc2 = Math.max(0.3, Math.min(1, H/500));
+      var rad = (0.8 + P.filterBlur*2.4) * sc2;
+      blitBlur(fboA,fboB,[1,0],rad); blitBlur(fboB,fboC,[0,1],rad);
+      blitBlur(fboC,fboB,[1,0],rad); blitBlur(fboB,fboC,[0,1],rad);
+      if(stage===2){ blitDirect(fboC); return; }
+      composite(fboC, stage===3);        // stage 3 = alpha mask, stage 4 = full composite
+    }
+  };
+  function blitDirect(src){
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    gl.viewport(0,0,W,H);
+    gl.useProgram(progComp);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src.tex);
+    gl.uniform1i(gl.getUniformLocation(progComp,"uTex"),0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uThreshold"),0.0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uSoft"),0.5);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uGoo"),0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uGain"),1.0);
+    gl.uniform1f(gl.getUniformLocation(progComp,"uMask"),0.0);
+    var bg = SEEDED.bg||[0.03,0.03,0.04];
+    gl.uniform3f(gl.getUniformLocation(progComp,"uBg"),bg[0],bg[1],bg[2]);
+    gl.bindVertexArray(vaoQuad); gl.drawArrays(gl.TRIANGLE_STRIP,0,4); gl.bindVertexArray(null);
+  }
+}
+
+/* ---------------- controls ---------------- */
+var KNOBS=[
+  ["interval","Interval",0.06,1.2,0.01],
+  ["speed","Speed",20,320,1],
+  ["maxRadius","Max radius",120,900,10],
+  ["strokeWidth","Stroke",1,40,0.5],
+  ["segments","Segments",1,14,1],
+  ["segmentSpacing","Segment gap",0,0.9,0.01],
+  ["segmentShrink","Segment shrink",0,0.95,0.01],
+  ["segmentRandom","Segment random",0,0.95,0.01],
+  ["jitter","Jitter",0,90,1],
+  ["spin","Spin",0,2.5,0.01],
+  ["filterBlur","Filter blur",0,1,0.01],
+  ["filterThreshold","Filter threshold",0,0.9,0.01]
+];
+(function(){
+  var host=document.getElementById("knobs");
+  KNOBS.forEach(function(k){
+    var d=document.createElement("div"); d.className="k";
+    d.innerHTML="<label for='k-"+k[0]+"'>"+k[1]+" <b id='o-"+k[0]+"'></b></label>";
+    var i=document.createElement("input");
+    i.type="range"; i.id="k-"+k[0]; i.min=k[2]; i.max=k[3]; i.step=k[4]; i.value=P[k[0]];
+    i.addEventListener("input",function(){ P[k[0]]=parseFloat(i.value); paintKnobs(); });
+    d.appendChild(i); host.appendChild(d);
+  });
+})();
+function paintKnobs(){
+  KNOBS.forEach(function(k){
+    var v=P[k[0]];
+    document.getElementById("o-"+k[0]).textContent = k[4]>=1 ? Math.round(v) : v.toFixed(2);
+    var i=document.getElementById("k-"+k[0]);
+    if(parseFloat(i.value)!==v) i.value=v;
+  });
+  var el=document.getElementById("cost");
+  if(el) el.textContent = (field?field.count():0)+" arcs in 1 draw call, plus "+(field?field.passes():0)+" half-resolution blur passes";
+}
+
+var HANDLES=["washed-cn-shoulder-bag","c-e-noise-tee","overdye-cargo-pant","erosion-cap","null-set-longsleeve","designer-tech-hood"];
+(function(){
+  var c=document.getElementById("chips");
+  HANDLES.forEach(function(h){
+    var b=document.createElement("button"); b.textContent=h;
+    b.addEventListener("click",function(){ document.getElementById("handle").value=h; applyHandle(h); });
+    c.appendChild(b);
+  });
+})();
+function applyHandle(h){
+  handle=h; deriveSeed(h);
+  P.segments = SEEDED.segments;
+  P.segmentSpacing = SEEDED.spacing;
+  P.segmentShrink = SEEDED.shrink;
+  paintKnobs();
+  if(field) field.reseed();
+  thumbs();
+}
+document.getElementById("handle").addEventListener("input",function(e){
+  applyHandle(e.target.value || "untitled");
+});
+document.getElementById("btn-goo").addEventListener("click",function(e){
+  goo=!goo; e.target.textContent="Goo: "+(goo?"on":"off");
+});
+document.getElementById("btn-play").addEventListener("click",function(e){
+  playing=!playing; e.target.textContent=playing?"Pause":"Play";
+  if(playing) requestAnimationFrame(loop);
+});
+document.getElementById("btn-pulse").addEventListener("click",function(){
+  if(field) field.reseed();
+});
+
+/* ---------------- boot ---------------- */
+deriveSeed(handle);
+var field = CircleField(document.getElementById("stage"), {});
+var thumbFields=[];
+function thumbs(){
+  [1,2,3,4].forEach(function(stage,i){
+    var cv=document.getElementById("p"+stage);
+    if(!cv) return;
+    if(!thumbFields[i]) thumbFields[i]=CircleField(cv,{max:900,scale:0.30,centered:true});
+    if(thumbFields[i]){ thumbFields[i].reseed(); thumbFields[i].still(3.0, stage); }
+  });
+}
+
+var frames=0,last=performance.now(),fps=0;
+function loop(now){
+  if(!field) return;
+  var t=now/1000;
+  field.frame(t);
+  frames++;
+  if(now-last>500){ fps=Math.round(frames*1000/(now-last)); frames=0; last=now;
+    document.getElementById("stat").innerHTML = field.count()+" arcs · <b>"+fps+" fps</b> · "+field.passes()+" blur passes";
+    paintKnobs();
+  }
+  if(playing) requestAnimationFrame(loop);
+}
+
+if(!field){
+  document.getElementById("stat").textContent = "WebGL2 unavailable in this browser";
+  document.getElementById("stage").style.background="#07070a";
+}else{
+  field.reseed();
+  paintKnobs();
+  thumbs();
+  if(playing) requestAnimationFrame(loop);
+  else { field.frame(3.0); document.getElementById("stat").textContent="paused — reduced motion is on"; }
+  window.addEventListener("resize", function(){ thumbs(); });
+}
+})();
+</script>
+
+<a id="fn-home" href="../" aria-label="Back to Field Notes index">&#8592;&nbsp;Field&nbsp;Notes</a>
+<style>
+#fn-home{
+  position:fixed;z-index:9999;text-decoration:none;
+  font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;
+  letter-spacing:.13em;text-transform:uppercase;
+  padding:7px 11px;border:1px solid;line-height:1;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:opacity .15s;
+}
+#fn-home:hover{opacity:1}
+#fn-home:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+#fn-home{top:14px;right:16px;color:#15180f;border-color:#15180f;background:rgba(233,236,230,.86);opacity:.9}
+</style>
+<script>
+(function(){
+  var a=document.getElementById("fn-home");
+  if(!a) return;
+  // Only shown where a sibling index actually exists — the published artifacts
+  // are standalone, and a link to "../" there would go nowhere useful.
+  if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation)\/?(index\.html)?$/.test(location.pathname)) a.remove();
+})();
+</script>
