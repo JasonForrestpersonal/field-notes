@@ -86,6 +86,36 @@ cd ~/Desktop/"JF AGENCY"/"111 Projects"/"JFA website"/field-notes && git push
 
 Ordered as on the index — newest first.
 
+### Scroll Shader Lab — scroll position as the timeline
+A sticky full-viewport WebGL stage under a tall scroll track (`tracklen` ×
+100vh). Scroll progress 0→1 is the only clock; each effect owns a **ramp**
+(start, end, curve) on that track and an **amount** derived from it. Source is
+an image, a video, the webcam, or a procedural sample, cover-fit into the
+working buffer; the chain ping-pongs between two FBOs, one pass per effect.
+
+Six effects: Planes (shatter into offset slabs), Radial mirror, Halftone,
+Broken LCD, VHS glitch, Flow distort. The last four are re-implementations of
+VIDVOX ISF shaders (flow after Andrew Benson / v002) — same attribution rule as
+Stipple. Flow keeps a persistent mask + delay buffer; on stills it is fed by
+scroll velocity (`uVel`), on video by real frame differences.
+
+The relationships Jason asked for live in three places:
+
+- **Drive** — every effect's amount is scaled per pixel by a feature of the
+  input (light, dark, saturation, distance to a chosen colour, edges); negative
+  strength inverts it. `localAmt()` in the shared GLSL preamble.
+- **Follow** — an effect can multiply its amount by the previous effect's
+  (or by `1 − previous`), which chains dependencies through the stack.
+- **Scroll motion** — each parameter has a small `mods[k]` in −1..1 that adds
+  `mod × t × (max − min)` as the ramp progresses.
+
+Ramp curve `in` **holds at 1 after its end** rather than dropping to 0 — that
+is what lets a chain accumulate down the page.
+
+Presets are absolute: `apply()` rebuilds the chain from `defaultEffect()` and
+merges the preset over it. Exports: PNG frame, clipboard frame, JSON preset.
+Debug handle: `window.__SCROLLSHADER = {state, apply, serialize, randomize, render, setSource, sample, prog}`.
+
 ### Wake — pointer-driven particle field
 Synthesised from seven references (two ykob sketch-threejs sketches, a CodePen
 by Lea Rosema, four ISF shaders). WebGL2 instanced rendering.
@@ -160,7 +190,7 @@ node-count stress test, a comparison matrix, and a risk register.
   stay usable as a standalone file:
 
 ```js
-if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation|wake)\/?(index\.html)?$/
+if(!/\/(stipple|field-lab|circle-field|terminator|scroll-animation|wake|scroll-shader)\/?(index\.html)?$/
    .test(location.pathname)) a.remove();
 ```
 

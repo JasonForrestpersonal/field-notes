@@ -2,7 +2,7 @@
 
 Rendering and animation experiments from Jason Forrest Agency.
 
-Six self-contained pages. **No build step, no dependencies, no package.json.**
+Seven self-contained pages. **No build step, no dependencies, no package.json.**
 Every tool is a single HTML file — open the source and the whole technique is
 there. That is deliberate: it keeps them readable, forkable, and alive for years
 without a toolchain rotting underneath them.
@@ -13,6 +13,7 @@ to rediscover.
 
 | | | |
 |---|---|---|
+| [`scroll-shader/`](scroll-shader/) | **Scroll Shader Lab** | Drop an image or video and let the scroll break it — planes, radial mirror, halftone, broken LCD, VHS and flow distortion, each on its own slice of the page, each reacting to the picture's own light and colour. |
 | [`wake/`](wake/) | **Wake** | A particle field driven by the pointer — move to push, click for a shockwave, shift-click to pin an attractor. Halftone, RGB and freeze screens. |
 | [`stipple/`](stipple/) | **Stipple** | Re-renders your own geometry — a typed word, an uploaded SVG, or a pasted CSV — as a field of marks. Vector export grouped one layer per ink. |
 | [`field-lab/`](field-lab/) | **Field Lab** | Playground for the Cav Empt circle-field technique. Six primitives, eight materials, four oscillators, nineteen presets. |
